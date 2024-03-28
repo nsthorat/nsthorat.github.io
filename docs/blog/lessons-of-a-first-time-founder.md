@@ -1,3 +1,17 @@
+<div>
+<meta name="title" content="Lessons of a first time founder" />
+<meta name="description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://nikubaba.com/" />
+<meta property="og:title" content="Lessons of a first time founder" />
+<meta property="og:description" content="" />
+<meta property="og:image" content="https://nikubaba.com/assets/main_image.gif" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content="https://nikubaba.com/" />
+<meta property="twitter:title" content="Lessons of a first time founder" />
+<meta property="twitter:description" content="" />
+<meta property="og:image" content="lilac_inc_day.png" />
+</div>
 # Lessons of a first time founder
 
 > _Disclaimer: I wrote this for myself. Smarter people will probably tell you different things. Keep that in mind. Take these lessons, and apply them to your journey (or don’t) _🙂
