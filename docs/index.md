@@ -50,10 +50,10 @@ hide:
 - [Know Your Data](https://knowyourdata.withgoogle.com/)
 - [TensorFlow.js](https://www.tensorflow.org/js)
 
-## [blog](blog/blog.md)
+## [blog](blog/index.md)
 - [Lessons of a first time founder](./blog/lessons-of-a-first-time-founder.md)
 
-## [music](music/music.md)
+## [music](music/index.md)
 - [songs](./music/index.md#bringmeanimals)
 - [ableton plugins](./music/index.md#ableton-plugins)
 

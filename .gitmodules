@@ -1,4 +1,4 @@
 [submodule "site"]
 	path = site
-	url = https://github.com/nsthorat/blog
+	url = https://github.com/nsthorat/nsthorat.github.io
 	branch = gh-pages
