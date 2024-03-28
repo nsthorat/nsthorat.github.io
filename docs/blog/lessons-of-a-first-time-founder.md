@@ -6,12 +6,12 @@
 <meta property="og:url" content="https://nikubaba.com/" />
 <meta property="og:title" content="Lessons of a first time founder" />
 <meta property="og:description" content="" />
-<meta property="og:image" content="https://nikubaba.com/assets/main_image.gif" />
+<meta property="og:image" content="https://nikubaba.com/assets/lilac_inc_day.png" />
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content="https://nikubaba.com/" />
 <meta property="twitter:title" content="Lessons of a first time founder" />
 <meta property="twitter:description" content="" />
-<meta property="og:image" content="lilac_inc_day.png" />
+<meta property="og:image" content="https://nikubaba.com/assets/lilac_inc_day.png" />
 </head>
 </div>
 # Lessons of a first time founder
