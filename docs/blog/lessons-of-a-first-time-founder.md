@@ -1,4 +1,4 @@
-# lessons of a first time founder
+# Lessons of a first time founder
 
 > _Disclaimer: I wrote this for myself. Smarter people will probably tell you different things. Keep that in mind. Take these lessons, and apply them to your journey (or don’t) _🙂
 
