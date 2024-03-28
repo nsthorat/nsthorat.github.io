@@ -1,0 +1,14 @@
+[tool.poetry]
+authors = ["Nikhil Thorat"]
+description = "Nikhil's Blog"
+license = "Apache-2.0"
+name = "blog"
+repository = "https://github.com/nsthorat/blog"
+packages = [{ include = "blog" }]
+readme = "README.md"
+version = "0.1.0"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<4.0"
+mkdocs = "^1.5.3"
+mkdocs-material = "^9.5.14"
