@@ -45,7 +45,7 @@ hide:
 
 <hr>
 
-## [work](work/work.md)
+## [work](work/index.md)
 - [Lilac AI](https://www.lilacml.com/)
 - [Know Your Data](https://knowyourdata.withgoogle.com/)
 - [TensorFlow.js](https://www.tensorflow.org/js)

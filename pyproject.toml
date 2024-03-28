@@ -11,4 +11,4 @@ version = "0.1.0"
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
 mkdocs = "^1.5.3"
-mkdocs-material = "^9.5.14"
+mkdocs-material = {extras = ["imaging"], version = "^9.5.15"}
