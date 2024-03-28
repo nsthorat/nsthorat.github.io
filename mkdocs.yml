@@ -5,7 +5,6 @@ copyright: Copyright &copy; 2024 Nikhil Thorat
 
 # Navigation
 nav:
-
   - home: 'index.md'
   - work: 'work/index.md'
   - blog:
@@ -75,6 +74,7 @@ theme:
     - search.share
     - search.suggest
     - toc.follow
+  favicon: assets/boxes.svg
 
 markdown_extensions: 
   - attr_list
@@ -93,3 +93,6 @@ extra:
       link: https://github.com/nsthorat
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/in/nikhil-thorat-58a18232/
+  analytics:
+    provider: google
+    property: G-6KB19MF5M3
