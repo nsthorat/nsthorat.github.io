@@ -1,4 +1,5 @@
 <div>
+<head>
 <meta name="title" content="Lessons of a first time founder" />
 <meta name="description" content="" />
 <meta property="og:type" content="website" />
@@ -11,6 +12,7 @@
 <meta property="twitter:title" content="Lessons of a first time founder" />
 <meta property="twitter:description" content="" />
 <meta property="og:image" content="lilac_inc_day.png" />
+</head>
 </div>
 # Lessons of a first time founder
 
