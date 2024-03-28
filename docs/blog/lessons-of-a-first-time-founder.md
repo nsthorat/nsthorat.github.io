@@ -12,7 +12,7 @@ In all seriousness, the relationship that I built with Daniel over those years w
 
 I am a hacker, tinkerer, and learn by _doing_ and _failing_. I have to make mistakes the hard way – reading how people did things the “right way” doesn’t hold as much weight as me trying it out for myself. If you’re at all like me, this story is probably completely useless – go learn the mistakes on your own. For the rest, keep reading.
 
-Daniel is a much more methodical thinker who will go read all of the docs before writing a line of code. His background is in math and physics, and he got his masters in computer science at the MIT media lab. Plainly, he’s a brilliant guy.
+Daniel is a much more methodical thinker who will go read all of the docs before writing a line of code. He got his masters in computer science at the MIT media lab, and wrote some interesting physics papers. Plainly, he’s a brilliant guy.
 
 We met at the [PAIR](https://pair.withgoogle.com/) team at Google. We quickly realized that we worked really well together. We didn’t know why, but it just worked. We started TensorFlow.js as a hackathon project, and it exploded in popularity, we grew a team, and eventually handed it off. Soon after, we started Know Your Data, another 3 year project that went well.
 
@@ -204,7 +204,6 @@ You need to ask yourself: what kind of partner do I want? Do you want someone wh
 * Do your homework on them. Ask other portfolio founders for their advice – cold emailing is ok!
 * What is their personality like? Do you mesh with them?
 
-
 ### Lesson 12: Launch and get customers early
 
 Let’s get into the product now.
@@ -219,7 +218,6 @@ Your clock is ticking – you are burning money on salaries if you are paying yo
 
 **Launch and iterate quickly!**
 
-
 ### Lesson 13: Give your employees equity
 
 In general, when thinking about raising money, you want to leave equity for employees, versus VCs. They bring much more to the table, and can help you build a huge business.
@@ -227,7 +225,6 @@ In general, when thinking about raising money, you want to leave equity for empl
 You also want them to feel more invested in the company, versus giving them huge amounts of cash (which you have very little).
 
 This is critical for making a healthy team dynamic.
-
 
 ### Lesson 14: Remember the milestones!
 
@@ -274,6 +271,18 @@ Morale was high. Companies were reaching out. We had an influx of new ideas. Eve
 
 **No matter what, just keep building.**
 
+### Lesson 17: While you don't want to overbuild, spend ample time exploring
+
+Another section on product, because it's actually so important. And it's easy to forget that product is **so** important given all the other stuff.
+
+People say to avoid over-building, and focus on a narrow problem. This is of course true.
+
+At the same time, you want to be able to explore lots of different approaches to solving a problem, or attacking adjacent problems. Sometimes, other things pop out of that that could be **the** feature that gets you to product-market-fit.
+
+Sometimes exploring a new feature opens up an entirely new way of thinking, or a new way of solving a problem. Or it gets you in
+front a user that you wouldn't have normally been in front of.
+
+I think it's critical that most focus should actually be on product, and not the game of building a company. Everything else follows.
 
 ### Lesson 16: Between pre-seed and seed, start thinking about the business
 
@@ -300,7 +309,6 @@ He was totally right, and we knew it, we just were steeped in the uncertainty th
 
 Equipped with all of this product, new way of thinking, and motivation, we gave it another go.
 
-
 ### Lesson 18: Have conviction and a strong vision
 
 At this point in the story (Feb 2024), we started reviving conversations with VCs that rejected us, and new VCs. We started getting better at sniffing out the good ones from the bad ones. We knew our target VC: one who could help us navigate the transition from OSS to a company with revenue. We wanted someone who vibed with us (reach out to me if you want referrals).
@@ -321,7 +329,7 @@ This part of the story feels like all the stars finally started aligning.
 
 We packed a week full of pitches to keep the momentum going after the big launch. This was really important! Don’t try to half-ass it. Commit to the fundraise, it’s critical to set aside time. But do it when you feel great, and your momentum is high, and **you’re within range of the milestone target.**
 
-We pitched to the first investor, and days later we got the first term sheet.
+We pitched to the first investor, and days later we got the first term sheet from [E14](https://www.e14.vc/), an MIT fund. Calvin and Habib from E14 are rockstar VCs who are ex-founders who have gone through this journey. I would recommend them to anyone!
 
 When you get your first term sheet, this is a huge moment of celebration. Congrats! Now you have some leverage – VCs don’t want to miss out on a great opportunity. Other VCs wanting to invest is a great sign for them.
 
