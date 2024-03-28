@@ -1,1 +1,0 @@
-# Lessons of a first time founder
