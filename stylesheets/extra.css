@@ -1,0 +1,61 @@
+/* Page width */
+.md-grid {
+  max-width: 52rem;
+}
+
+/* Markdown content */
+.md-content a {
+  font-weight: 500;
+}
+
+
+/* .md-content h3 a {
+  font-size: 20px;
+  font-weight: 600;
+} */
+
+.md-content p {
+  padding: .3rem 0;
+}
+
+#me {
+  margin: 0rem 0 .5rem 0rem;
+}
+
+.md-typeset h1 {
+  margin: 1rem 0 1rem 0rem;
+}
+
+.md-typeset h2 {
+  margin: 0rem 0 .75rem 0;
+}
+
+.md-typeset h3 {
+  margin: 1rem 0 0rem 0;
+}
+
+/** Navigation */
+@media screen and (min-width: 76.234375em) {
+  .md-sidebar.md-sidebar--primary {
+    display: none;
+  }
+}
+
+/* Search bar */
+.md-search__input, .md-search__inner, .md-search__form {
+  border-radius: .3rem;
+}
+
+/* Header */
+.md-header__inner {
+  /* Add padding to the header to increase the size */
+  padding: .4rem .2rem;
+}
+
+.md-header__topic {
+  /* Change the font of the header text */
+  font-size: 24px;
+  font-family: 'Gowun Batang', sans-serif;
+  font-weight: 400;
+  color: black;
+}
