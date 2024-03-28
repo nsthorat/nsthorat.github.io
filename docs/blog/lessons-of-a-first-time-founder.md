@@ -248,9 +248,6 @@ Here were the lessons:
 
 We should have waited for some of those relationships to mature. We took a huge morale hit after the rejections. It wasted a lot of valuable time that we could have spent building product. We seriously were thinking about what the company shutting down would look like.
 
-However, building product gets you to that milestone, but also is just good for momentum and morale.
-
-
 ### Lesson 15: Product and customers are what matter most
 
 It took a little bit of time for us to ingest the lessons from the failed fundraise. There were still 2 VCs that didn’t quite say no, but remember a “maybe” is actually a no. They are still happy to waste your time at this stage.
