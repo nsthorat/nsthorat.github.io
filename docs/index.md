@@ -47,8 +47,8 @@ hide:
 
 ## [work](work/index.md)
 - [Lilac AI](https://www.lilacml.com/)
-- [Know Your Data](https://knowyourdata.withgoogle.com/)
 - [TensorFlow.js](https://www.tensorflow.org/js)
+- [Know Your Data](https://knowyourdata.withgoogle.com/)
 
 ## [blog](blog/index.md)
 - [Lessons of a first time founder](./blog/lessons-of-a-first-time-founder.md)
