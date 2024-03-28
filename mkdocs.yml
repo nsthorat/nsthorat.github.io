@@ -16,7 +16,6 @@ nav:
 
 theme:
   name: material
-  custom_dir: overrides
   logo: assets/boxes.svg
   icon:
     repo: fontawesome/brands/github
