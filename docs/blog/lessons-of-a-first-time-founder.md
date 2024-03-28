@@ -11,7 +11,6 @@
 <meta property="twitter:url" content="https://nikubaba.com/" />
 <meta property="twitter:title" content="Lessons of a first time founder" />
 <meta property="twitter:description" content="" />
-<meta property="og:image" content="https://nikubaba.com/assets/lilac_inc_day.png" />
 </head>
 </div>
 # Lessons of a first time founder
