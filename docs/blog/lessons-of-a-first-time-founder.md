@@ -341,7 +341,7 @@ My girlfriend, who was in sales, always told me “time kills deals”. Stupidly
 
 Boy was I wrong. This is sales. VCs are finance people. I had no experience in sales! Across the board, I was a _much_ worse negotiator than them. But I learned a few tricks.
 
-The most important one is about **timing**. Now that we had the first term sheet, we were getting pressure from them to sign. This makes sense. When VCs give you a term sheet, they _really_ want you to sign it. They have metrics about how many term sheets get signed. This tells LPs which firms to invest in. They’re going to pester you. They might use some negotiation tactics that seem a little scary. Stay strong. You got this.
+The most important one is about **timing**. Now that we had the first term sheet, we were getting pressure from them to sign. This makes sense. When VCs give you a term sheet, they _really_ want you to sign it. They have metrics about how many term sheets get signed. They’re might push hard for you to make a decision. They might use some negotiation tactics that seem a little foreign. You got this.
 
 Practically, the way we mitigated this was to set a deadline. We chose 1 week from then and said “we are going to gather all of the term sheets on Friday, and make the decision over the weekend”.
 
