@@ -245,8 +245,6 @@ We went to the Bay Area, talked to lots of VCs, and plainly got rejected over an
 
 Here were the lessons:
 
-
-
 1. We didn’t have enough large companies using us. **When VCs did diligence checks they didn’t yet show signs they would pay. **This was an important business lesson.
 2. At the same time, we only had a ~350 github stars
 3. We didn’t go look at the other companies that raised a similar round. What did they look like? What was their traction like?
@@ -256,13 +254,11 @@ We should have waited for some of those relationships to mature. We took a huge 
 However, building product gets you to that milestone, but also is just good for momentum and morale.
 
 
-### Lesson 14: Product and customers are what matter most
+### Lesson 15: Product and customers are what matter most
 
 It took a little bit of time for us to ingest the lessons from the failed fundraise. There were still 2 VCs that didn’t quite say no, but remember a “maybe” is actually a no. They are still happy to waste your time at this stage.
 
 As someone wise once said “Investors can remain ‘interested’ longer than you can remain solvent.”
-
-
 
 [![alt_text](../assets/investors_interested.png "image_tooltip")](https://twitter.com/aashaysanghvi_/status/1724921090827251731)
 
@@ -279,7 +275,7 @@ Morale was high. Companies were reaching out. We had an influx of new ideas. Eve
 **No matter what, just keep building.**
 
 
-### Lesson 14a: Between pre-seed and seed, start thinking about the business
+### Lesson 16: Between pre-seed and seed, start thinking about the business
 
 When we launched clustering and Lilac Garden, all of a sudden we had a story for how users would convert. We also had a user who wanted us to sell them a managed, on-premise version of the cataloging features we had built.
 
@@ -288,7 +284,7 @@ This was an important piece of the puzzle as it was a major talking point for VC
 At this stage (between pre-seed and seed), I think it’s wise to think about how you’re going to monetize. It’s important to have people ready to convert once you have a paid story.
 
 
-### Lesson 15: Who you know matters A LOT. Grow your network.
+### Lesson 17: Who you know matters A LOT. Grow your network.
 
 We looked at other seed round companies, and it felt like we were ready to try again. I feared the same thing would happen, but we *had* to at this point. We were running low on cash. 
 
@@ -305,7 +301,7 @@ He was totally right, and we knew it, we just were steeped in the uncertainty th
 Equipped with all of this product, new way of thinking, and motivation, we gave it another go.
 
 
-### Lesson 16: Have conviction and a strong vision
+### Lesson 18: Have conviction and a strong vision
 
 At this point in the story (Feb 2024), we started reviving conversations with VCs that rejected us, and new VCs. We started getting better at sniffing out the good ones from the bad ones. We knew our target VC: one who could help us navigate the transition from OSS to a company with revenue. We wanted someone who vibed with us (reach out to me if you want referrals).
 
@@ -313,15 +309,13 @@ One important change from last time is that our longer-term vision started to cr
 
 However, before this, we didn’t yet have that evidence (though it’s obvious), and because of that we were softer in our language about this bigger vision.
 
-But VCs love conviction, and they love strong visions. We realized this is because:
-
-
+But VCs love conviction, and they love strong visions. This is because:
 
 1. For them to make money, they need one portfolio company to become a unicorn. The economics don’t work out where there’s mild successes. They want huge companies.
 2. They want to see that you’ll be able to hire people. For good people to join a small startup, you need to sell the vision. You need to be able to convince them to join you, and not OpenAI.
 
 
-### Lesson 17: Use your leverage
+### Lesson 19: Use your leverage
 
 This part of the story feels like all the stars finally started aligning.
 
@@ -344,7 +338,9 @@ Boy was I wrong. This is sales. VCs are finance people. I had no experience in s
 
 The most important one is about **timing**. Now that we had the first term sheet, we were getting pressure from them to sign. This makes sense. When VCs give you a term sheet, they _really_ want you to sign it. They have metrics about how many term sheets get signed. This tells LPs which firms to invest in. They’re going to pester you. They might use some negotiation tactics that seem a little scary. Stay strong. You got this.
 
-Practically, the way we mitigated this was to set a deadline. We chose 1 week from then and said “we are going to gather all of the term sheets on Friday, and make the decision over the weekend” (don’t choose Friday – make the deadline on a Wednesday. We were on calls all weekend).
+Practically, the way we mitigated this was to set a deadline. We chose 1 week from then and said “we are going to gather all of the term sheets on Friday, and make the decision over the weekend”.
+
+> Mini-lesson: don’t choose Friday – make the deadline on a Wednesday. We were on calls all weekend.
 
 What we effectively did was **blame a process**, that we transparently communicated with everyone, on why it will take time to decide.
 
@@ -355,8 +351,7 @@ This both allows you to set expectations with early term sheets, but also sets a
 * Invent deadlines.
 * Make sure your deadline is in the middle of the week.
 
-
-### Lesson 19: VCs can make time quickly
+### Lesson 20: VCs can make time quickly
 
 At this point, we started looking at how we were treated differently this time versus last time. Previously, VCs would book meetings a week or two out. We just accepted that.
 
@@ -366,12 +361,10 @@ If there’s something critical, they can meet you right that day. Or at night. 
 
 They know the “time kills deals” lesson from above. Make sure you understand this too.
 
-
-### Lesson 20: Sometimes you have to prioritize yourself
+### Lesson 21: Sometimes you have to prioritize yourself
 
 We ended up getting 3 term sheets from great investors. At the same time, we were working with Databricks on a deal we couldn’t refuse, and [we decided to join them](https://www.databricks.com/blog/lilac-joins-databricks-simplify-unstructured-data-evaluation-generative-ai).
 
 This ended up being the right decision for us personally, given where we are in life. While this was a very quick “acquisition”, and not necessarily what we originally set out for, it made sense for both of our long-term careers.
 
 I’m not going to talk about the details of this in this blog post, but feel free to message me and I’ll share what I can 🙂
-
