@@ -2,27 +2,26 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://nikubaba.com/</loc>
-         <lastmod>2024-03-28</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-07-03</lastmod>
     </url>
     <url>
          <loc>https://nikubaba.com/blog/</loc>
-         <lastmod>2024-03-28</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-07-03</lastmod>
+    </url>
+    <url>
+         <loc>https://nikubaba.com/blog/coding-agents-self-verification-loops/</loc>
+         <lastmod>2025-07-03</lastmod>
     </url>
     <url>
          <loc>https://nikubaba.com/blog/lessons-of-a-first-time-founder/</loc>
-         <lastmod>2024-03-28</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-07-03</lastmod>
     </url>
     <url>
          <loc>https://nikubaba.com/music/</loc>
-         <lastmod>2024-03-28</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-07-03</lastmod>
     </url>
     <url>
          <loc>https://nikubaba.com/work/</loc>
-         <lastmod>2024-03-28</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-07-03</lastmod>
     </url>
 </urlset>
