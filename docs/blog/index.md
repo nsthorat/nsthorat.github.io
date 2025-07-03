@@ -14,6 +14,7 @@ hide:
 
 ## posts
 
+- [Coding Agents: Self-Verification Loops](./coding-agents-self-verification-loops.md)
 - [Lessons of a first time founder](./lessons-of-a-first-time-founder.md)
 
 

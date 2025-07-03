@@ -1,19 +1,243 @@
+/* Anysphere Dark Theme for MkDocs Material */
+
+:root {
+  /* VSCode-like Anysphere Dark color palette */
+  --anysphere-bg: #1e1e1e;
+  --anysphere-bg-secondary: #252526;
+  --anysphere-bg-tertiary: #2d2d30;
+  --anysphere-selection: #264f78;
+  --anysphere-text: #cccccc;
+  --anysphere-text-bright: #e7e7e7;
+  --anysphere-comment: #6A9955;
+  --anysphere-cyan: #4EC9B0;
+  --anysphere-pink: #C586C0;
+  --anysphere-orange: #CE9178;
+  --anysphere-lavender: #9CDCFE;
+  --anysphere-blue: #569CD6;
+  --anysphere-blue-link: #4fc1ff;
+  --anysphere-subtle: #858585;
+  --anysphere-error: #F44747;
+  --anysphere-yellow: #DCDCAA;
+}
+
+/* Apply Anysphere Dark theme colors */
+[data-md-color-scheme="slate"] {
+  /* Primary colors */
+  --md-primary-fg-color: var(--anysphere-bg);
+  --md-primary-fg-color--light: var(--anysphere-bg-secondary);
+  --md-primary-fg-color--dark: var(--anysphere-bg);
+  --md-primary-bg-color: var(--anysphere-text);
+  --md-primary-bg-color--light: var(--anysphere-text);
+
+  /* Accent colors */
+  --md-accent-fg-color: var(--anysphere-blue-link);
+  --md-accent-fg-color--transparent: rgba(79, 193, 255, 0.1);
+  --md-accent-bg-color: var(--anysphere-text);
+  --md-accent-bg-color--light: var(--anysphere-text);
+
+  /* Background colors */
+  --md-default-bg-color: var(--anysphere-bg);
+  --md-default-bg-color--light: var(--anysphere-bg-secondary);
+  --md-default-bg-color--lighter: var(--anysphere-bg-secondary);
+  --md-default-bg-color--lightest: var(--anysphere-bg-secondary);
+
+  /* Text colors */
+  --md-default-fg-color: var(--anysphere-text);
+  --md-default-fg-color--light: var(--anysphere-text);
+  --md-default-fg-color--lighter: var(--anysphere-comment);
+  --md-default-fg-color--lightest: var(--anysphere-subtle);
+
+  /* Code colors */
+  --md-code-bg-color: var(--anysphere-bg-tertiary);
+  --md-code-fg-color: var(--anysphere-text);
+  --md-code-hl-color: var(--anysphere-selection);
+  --md-code-hl-color--light: var(--anysphere-selection);
+
+  /* Footer */
+  --md-footer-bg-color: var(--anysphere-bg);
+  --md-footer-bg-color--dark: var(--anysphere-bg);
+  --md-footer-fg-color: var(--anysphere-text);
+  --md-footer-fg-color--light: var(--anysphere-comment);
+  --md-footer-fg-color--lighter: var(--anysphere-subtle);
+
+  /* Selection */
+  --md-selection-fg-color: var(--anysphere-text);
+  --md-selection-bg-color: var(--anysphere-selection);
+
+  /* Admonition colors */
+  --md-admonition-fg-color: var(--anysphere-text);
+  --md-admonition-bg-color: var(--anysphere-bg-secondary);
+
+  /* Warning colors */
+  --md-warning-fg-color: var(--anysphere-orange);
+  --md-warning-bg-color: var(--anysphere-bg-secondary);
+
+  /* Typeset colors */
+  --md-typeset-color: var(--anysphere-text);
+  --md-typeset-a-color: var(--anysphere-cyan);
+  --md-typeset-mark-color: var(--anysphere-selection);
+  --md-typeset-kbd-color: var(--anysphere-text);
+  --md-typeset-kbd-accent-color: var(--anysphere-text);
+  --md-typeset-kbd-border-color: var(--anysphere-subtle);
+  --md-typeset-table-color: var(--anysphere-text);
+  --md-typeset-table-color--light: var(--anysphere-bg-secondary);
+}
+
+/* Typography - VSCode style */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+/* Override header styles for Anysphere Dark */
+.md-header {
+  background-color: var(--anysphere-bg);
+  color: var(--anysphere-text);
+}
+
+.md-header__topic {
+  font-size: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  color: var(--anysphere-text);
+}
+
+/* Logo styling */
+.md-logo {
+  color: var(--anysphere-text);
+}
+
+.md-logo img,
+.md-logo svg {
+  fill: var(--anysphere-text);
+  color: var(--anysphere-text);
+}
+
+/* Navigation tabs */
+.md-tabs {
+  background-color: var(--anysphere-bg);
+  color: var(--anysphere-text);
+  border-bottom: 1px solid var(--anysphere-bg-secondary);
+}
+
+.md-tabs__link {
+  color: var(--anysphere-comment);
+  opacity: 1;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  color: var(--anysphere-cyan);
+}
+
+.md-tabs__link--active {
+  border-bottom: 2px solid var(--anysphere-cyan);
+}
+
+/* Search */
+.md-search__input {
+  background-color: var(--anysphere-bg-secondary);
+  color: var(--anysphere-text);
+  border-color: var(--anysphere-subtle);
+}
+
+.md-search__input::placeholder {
+  color: var(--anysphere-comment);
+}
+
+.md-search__input, .md-search__inner, .md-search__form {
+  border-radius: .3rem;
+}
+
+/* Links */
+.md-content a {
+  color: var(--anysphere-blue-link);
+  font-weight: 400;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.md-content a:hover {
+  color: var(--anysphere-cyan);
+  text-decoration: none;
+}
+
+/* Code blocks */
+.highlight,
+.highlighttable,
+.md-typeset .highlight pre,
+.md-typeset .highlighttable pre {
+  background-color: var(--anysphere-bg-tertiary);
+  border: 1px solid var(--anysphere-bg-secondary);
+}
+
+.highlight code,
+.highlighttable code,
+.md-typeset pre code {
+  background-color: transparent;
+  color: var(--anysphere-text);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 14px;
+}
+
+/* Inline code */
+.md-typeset code {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--anysphere-text);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.9em;
+}
+
+/* Blockquotes */
+.md-typeset blockquote {
+  border-left-color: var(--anysphere-cyan);
+  color: var(--anysphere-comment);
+}
+
+/* Tables */
+.md-typeset table:not([class]) {
+  background-color: var(--anysphere-bg);
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--anysphere-bg-secondary);
+  color: var(--anysphere-text);
+}
+
+.md-typeset table:not([class]) td {
+  border-color: var(--anysphere-subtle);
+}
+
+/* TOC */
+.md-nav__link {
+  color: var(--anysphere-comment);
+}
+
+.md-nav__link:hover,
+.md-nav__link--active {
+  color: var(--anysphere-cyan);
+}
+
+/* Sidebar */
+.md-sidebar {
+  background-color: var(--anysphere-bg);
+}
+
 /* Page width */
 .md-grid {
   max-width: 52rem;
 }
 
-/* Markdown content */
-.md-content a {
-  font-weight: 500;
+/* Reduce top margin on main content grid */
+.md-main__inner.md-grid {
+  margin-top: 0;
 }
 
 
-/* .md-content h3 a {
-  font-size: 20px;
-  font-weight: 600;
-} */
-
+/* Markdown content spacing */
 .md-content p {
   padding: .3rem 0;
 }
@@ -23,39 +247,81 @@
 }
 
 .md-typeset h1 {
-  margin: 1rem 0 1rem 0rem;
+  margin: 1rem 0 1rem 0;
+  color: var(--anysphere-text);
 }
 
+
 .md-typeset h2 {
-  margin: 0rem 0 .75rem 0;
+  margin: 1.5rem 0 .75rem 0;
+  color: var(--anysphere-cyan);
+  font-weight: 400;
+  font-size: 1.5rem;
+}
+
+.md-typeset h2 a {
+  color: inherit;
 }
 
 .md-typeset h3 {
   margin: 1rem 0 0rem 0;
+  color: var(--anysphere-text);
 }
 
-/** Navigation */
+/* Navigation - hide primary sidebar, keep secondary (TOC) */
 @media screen and (min-width: 76.234375em) {
   .md-sidebar.md-sidebar--primary {
     display: none;
   }
+  
+  /* Ensure TOC is visible on the right */
+  .md-sidebar.md-sidebar--secondary {
+    display: block;
+  }
 }
 
-/* Search bar */
-.md-search__input, .md-search__inner, .md-search__form {
-  border-radius: .3rem;
-}
-
-/* Header */
+/* Header inner padding */
 .md-header__inner {
-  /* Add padding to the header to increase the size */
   padding: .4rem .2rem;
 }
 
-.md-header__topic {
-  /* Change the font of the header text */
-  font-size: 24px;
-  font-family: 'Gowun Batang', sans-serif;
-  font-weight: 400;
-  color: black;
-}
+/* Syntax highlighting colors based on Anysphere Dark */
+.highlight .k { color: var(--anysphere-lavender); } /* Keyword */
+.highlight .n { color: var(--anysphere-text); } /* Name */
+.highlight .o { color: var(--anysphere-text); } /* Operator */
+.highlight .p { color: var(--anysphere-text); } /* Punctuation */
+.highlight .c { color: var(--anysphere-comment); } /* Comment */
+.highlight .c1 { color: var(--anysphere-comment); } /* Comment.Single */
+.highlight .cm { color: var(--anysphere-comment); } /* Comment.Multiline */
+.highlight .cp { color: var(--anysphere-comment); } /* Comment.Preproc */
+.highlight .cs { color: var(--anysphere-comment); } /* Comment.Special */
+.highlight .s { color: var(--anysphere-orange); } /* String */
+.highlight .s1 { color: var(--anysphere-orange); } /* String.Single */
+.highlight .s2 { color: var(--anysphere-orange); } /* String.Double */
+.highlight .se { color: var(--anysphere-pink); } /* String.Escape */
+.highlight .sh { color: var(--anysphere-orange); } /* String.Heredoc */
+.highlight .si { color: var(--anysphere-pink); } /* String.Interpol */
+.highlight .sx { color: var(--anysphere-orange); } /* String.Other */
+.highlight .sr { color: var(--anysphere-orange); } /* String.Regex */
+.highlight .ss { color: var(--anysphere-orange); } /* String.Symbol */
+.highlight .m { color: var(--anysphere-pink); } /* Number */
+.highlight .mf { color: var(--anysphere-pink); } /* Number.Float */
+.highlight .mh { color: var(--anysphere-pink); } /* Number.Hex */
+.highlight .mi { color: var(--anysphere-pink); } /* Number.Integer */
+.highlight .mo { color: var(--anysphere-pink); } /* Number.Oct */
+.highlight .na { color: var(--anysphere-cyan); } /* Name.Attribute */
+.highlight .nb { color: var(--anysphere-blue); } /* Name.Builtin */
+.highlight .nc { color: var(--anysphere-lavender); } /* Name.Class */
+.highlight .nd { color: var(--anysphere-lavender); } /* Name.Decorator */
+.highlight .nf { color: var(--anysphere-blue); } /* Name.Function */
+.highlight .nl { color: var(--anysphere-text); } /* Name.Label */
+.highlight .nn { color: var(--anysphere-text); } /* Name.Namespace */
+.highlight .nt { color: var(--anysphere-cyan); } /* Name.Tag */
+.highlight .nv { color: var(--anysphere-text); } /* Name.Variable */
+.highlight .ow { color: var(--anysphere-lavender); } /* Operator.Word */
+.highlight .kc { color: var(--anysphere-pink); } /* Keyword.Constant */
+.highlight .kd { color: var(--anysphere-lavender); } /* Keyword.Declaration */
+.highlight .kn { color: var(--anysphere-lavender); } /* Keyword.Namespace */
+.highlight .kp { color: var(--anysphere-lavender); } /* Keyword.Pseudo */
+.highlight .kr { color: var(--anysphere-lavender); } /* Keyword.Reserved */
+.highlight .kt { color: var(--anysphere-lavender); } /* Keyword.Type */

@@ -1,14 +1,17 @@
-[tool.poetry]
-authors = ["Nikhil Thorat"]
-description = "Nikhil's Blog"
-license = "Apache-2.0"
+[project]
 name = "blog"
-repository = "https://github.com/nsthorat/blog"
-packages = [{ include = "blog" }]
-readme = "README.md"
 version = "0.1.0"
+description = "Nikhil's Blog"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Nikhil Thorat"},
+]
+requires-python = ">=3.9"
+dependencies = [
+    "mkdocs>=1.5.3",
+    "mkdocs-material[imaging]>=9.5.15",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.9,<4.0"
-mkdocs = "^1.5.3"
-mkdocs-material = {extras = ["imaging"], version = "^9.5.15"}
+[project.urls]
+Repository = "https://github.com/nsthorat/blog"

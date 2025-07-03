@@ -1,3 +1,3 @@
-poetry install
-poetry run mkdocs build
+uv sync
+uv run mkdocs build
 

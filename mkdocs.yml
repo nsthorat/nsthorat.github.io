@@ -15,7 +15,7 @@ nav:
 theme:
   name: material
   custom_dir: theme_overrides/
-  logo: assets/boxes.svg
+  logo: assets/boxes-light.svg
   icon:
     repo: fontawesome/brands/github
     edit: material/pencil
@@ -36,18 +36,9 @@ theme:
       quote: octicons/quote-16
 
   palette:
-      - scheme: default 
-        primary: white 
-        accent: indigo
-        # toggle:
-        #   icon: material/brightness-7
-        #   name: Switch to dark mode
       - scheme: slate
-        primary: black
-        accent: indigo
-        toggle:
-          icon: material/brightness-4
-          name: Switch to light mode
+        primary: custom
+        accent: custom
   features:
     - announce.dismiss
     - content.action.edit
@@ -65,7 +56,7 @@ theme:
     - navigation.instant.prefetch
     - navigation.instant.progress
     - navigation.prune
-    # - navigation.sections
+    - navigation.sections
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.top
@@ -74,11 +65,24 @@ theme:
     - search.share
     - search.suggest
     - toc.follow
-  favicon: assets/boxes.svg
+  favicon: assets/boxes-light.svg
 
-markdown_extensions: 
+markdown_extensions:
   - attr_list
   - md_in_html
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.details
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
 
 extra_css:
   - stylesheets/extra.css
