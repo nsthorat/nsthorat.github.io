@@ -1,3 +1,9 @@
+---
+title: "Lessons of a first time founder"
+description: "My journey from Google engineer to startup founder, raising capital, and eventually joining Databricks. 20 lessons learned along the way."
+image: https://nikubaba.com/assets/lilac_inc_day.png
+---
+
 # Lessons of a first time founder
 
 > _Disclaimer: I wrote this for myself. Smarter people will probably tell you different things. Keep that in mind. Take these lessons, and apply them to your journey (or don’t) _🙂

@@ -4,17 +4,33 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- When the social plugin is fixed, fix this. -->
-<meta name="title" content="Lessons of a first time founder" />
-<meta name="description" content="" />
+<!-- Social media metadata -->
+{% if page %}
+<meta name="title" content="{{ page.title | default(config.site_name) }}" />
+<meta name="description" content="{{ page.meta.description | default('Personal website of Nikhil Thorat') }}" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://nikubaba.com/" />
-<meta property="og:title" content="Lessons of a first time founder" />
-<meta property="og:description" content="" />
-<meta property="og:image" content="https://nikubaba.com/assets/lilac_inc_day.png" />
+<meta property="og:url" content="{{ page.canonical_url | default(config.site_url) }}" />
+<meta property="og:title" content="{{ page.title | default(config.site_name) }}" />
+<meta property="og:description" content="{{ page.meta.description | default('Personal website of Nikhil Thorat') }}" />
+<meta property="og:image" content="{{ page.meta.image | default('https://nikubaba.com/assets/main_image.gif') }}" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:url" content="https://nikubaba.com/" />
-<meta property="twitter:title" content="Lessons of a first time founder" />
-<meta property="twitter:description" content="" />
+<meta property="twitter:url" content="{{ page.canonical_url | default(config.site_url) }}" />
+<meta property="twitter:title" content="{{ page.title | default(config.site_name) }}" />
+<meta property="twitter:description" content="{{ page.meta.description | default('Personal website of Nikhil Thorat') }}" />
+<meta property="twitter:image" content="{{ page.meta.image | default('https://nikubaba.com/assets/main_image.gif') }}" />
+{% else %}
+<meta name="title" content="{{ config.site_name }}" />
+<meta name="description" content="Personal website of Nikhil Thorat" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{ config.site_url }}" />
+<meta property="og:title" content="{{ config.site_name }}" />
+<meta property="og:description" content="Personal website of Nikhil Thorat" />
+<meta property="og:image" content="https://nikubaba.com/assets/main_image.gif" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content="{{ config.site_url }}" />
+<meta property="twitter:title" content="{{ config.site_name }}" />
+<meta property="twitter:description" content="Personal website of Nikhil Thorat" />
+<meta property="twitter:image" content="https://nikubaba.com/assets/main_image.gif" />
+{% endif %}
 
 {% endblock %}

@@ -1,3 +1,9 @@
+---
+title: "Coding Agents: Increase the autonomy slider"
+description: "Make Claude verify its own work. Scripts, logs, screenshots. Stop being the QA. I now run 5 Claude instances in parallel instead of babysitting one."
+image: https://nikubaba.com/assets/coding-agents/new-way.png
+---
+
 # Coding Agents: Increase the autonomy slider
 
 *July 2025*
