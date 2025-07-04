@@ -619,18 +619,27 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#scripts" class="md-nav__link">
+  <a href="#hot-reload-devserver" class="md-nav__link">
     <span class="md-ellipsis">
-      Scripts
+      Hot reload devserver
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#print-statements" class="md-nav__link">
+  <a href="#lint-auto-format" class="md-nav__link">
     <span class="md-ellipsis">
-      Print Statements
+      Lint &amp; auto-format
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debugging-complex-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debugging complex behavior
     </span>
   </a>
   
@@ -693,18 +702,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#automated-purchasing-of-bandcamp-songs" class="md-nav__link">
+  <a href="#example-1-automated-purchasing-of-bandcamp-songs" class="md-nav__link">
     <span class="md-ellipsis">
-      Automated Purchasing of Bandcamp Songs
+      Example 1: Automated Purchasing of Bandcamp Songs
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#self-improving-synthetic-data-pipeline" class="md-nav__link">
+  <a href="#example-2-self-improving-synthetic-data-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
-      Self-Improving Synthetic Data Pipeline
+      Example 2: Self-Improving Synthetic Data Pipeline
     </span>
   </a>
   
@@ -742,7 +751,6 @@
 
 <h1 id="coding-agents-increase-the-autonomy-slider">Coding Agents: Increase the autonomy slider<a class="headerlink" href="#coding-agents-increase-the-autonomy-slider" title="Permanent link">&para;</a></h1>
 <p><em>July 2025</em></p>
-<p><strong>TL;DR</strong>: Make Claude verify its own work. Scripts, logs, screenshots. Stop being the QA. I now run 5 Claude instances in parallel instead of babysitting one.</p>
 <p><em>If you want to see code, see <a href="https://gitingest.com/databricks-solutions/agent-monitoring-demo-app">this project</a> where I built a Databricks App that has a UI with a LangGraph Agent, monitored with MLflow 3.0. This post will focus on Claude Code, but these tricks apply to Cursor, Gemini, and other AI coding tools.</em></p>
 <p>In his <a href="https://www.youtube.com/watch?v=LCEmiRjPEtQ">Software 3.0 talk</a>, Karpathy describes what he calls the "autonomy slider." You can be "mostly in charge" with small edits, or slide toward full autonomous operations. This post is about turning that slider up enough that I can actually go make coffee while Claude builds features.</p>
 <p>My approach: figure out where I'm the bottleneck and automate it away. Every time I find myself checking Claude's work, I ask "how can Claude check this instead?" This post shares what I've learned—the good, the bad, and the times Claude deleted my entire database (kidding, but only because I had safeguards).</p>
@@ -776,7 +784,7 @@
 </ul>
 <h3 id="python-frontend-bridge">Python ⟷ Frontend bridge<a class="headerlink" href="#python-frontend-bridge" title="Permanent link">&para;</a></h3>
 <p>OpenAPI code generation. FastAPI schemas → OpenAPI spec → TypeScript types and client code. Change a Python type? TypeScript updates automatically. No more "oh I forgot to update the frontend types" bugs.</p>
-<p>Here's the thing: all these tools create tight feedback loops. Claude writes code, the tooling immediately screams if something's wrong, Claude fixes it. No waiting for me to notice.</p>
+<p>Here's the thing: all these tools create tight feedback loops. Claude writes code, the tooling immediately tells Claude if something's wrong, Claude fixes it. No waiting for me to notice.</p>
 <h2 id="ear-training-self-verification">Ear Training: Self-Verification<a class="headerlink" href="#ear-training-self-verification" title="Permanent link">&para;</a></h2>
 <p>Every time I build something now, I ask myself two questions:</p>
 <ol>
@@ -787,9 +795,8 @@
 <p>Here are the techniques I use. You don't need all of them—pick what makes sense for your setup.</p>
 <h3 id="basic-self-verification">Basic Self-Verification<a class="headerlink" href="#basic-self-verification" title="Permanent link">&para;</a></h3>
 <p>The basics. Nothing fancy, but these save me from being Claude's babysitter.</p>
-<h4 id="scripts">Scripts<a class="headerlink" href="#scripts" title="Permanent link">&para;</a></h4>
-<p>Create simple scripts for everything. Here's what I typically have:</p>
-<p><strong>watch.sh</strong> - The most important script. Every time Claude changes code, the server restarts. If something breaks, it shows up in the logs immediately. Claude reads the error, fixes it, tries again. No waiting for me to say "hey, you broke the imports":
+<h4 id="hot-reload-devserver">Hot reload devserver<a class="headerlink" href="#hot-reload-devserver" title="Permanent link">&para;</a></h4>
+<p>The first thing I set up: Python server restarts on changes. TypeScript rebuilds automatically. When I change FastAPI endpoints, the OpenAPI spec regenerates and TypeScript client updates. If something breaks, it shows up in the logs immediately. Claude reads the error, fixes it, tries again. No waiting for me to say "hey, you broke the imports":
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="ch">#!/bin/bash</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># Kill existing processes first</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pkill<span class="w"> </span>-f<span class="w"> </span>uvicorn<span class="w"> </span><span class="m">2</span>&gt;/dev/null
@@ -806,19 +813,24 @@
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span>src/server<span class="w"> </span><span class="p">&amp;</span>
 </span></code></pre></div></p>
 <p>In CLAUDE.md, I tell it to run with: <code>nohup ./watch.sh &gt; watch.log 2&gt;&amp;1 &amp;</code></p>
-<p>Everything hot reloads. Python changes trigger TypeScript regeneration. If something hangs, Claude can read the logs and restart with <code>pkill</code>.</p>
-<p><strong>fix.sh</strong> - Auto-fixes what it can. Claude runs this, then fixes whatever's left:
+<p>If something hangs, Claude can read the logs and restart with <code>pkill</code>.</p>
+<p><img alt="Claude dev server" src="../../assets/coding-agents/claude-dev-server-optimized.gif" /></p>
+<h4 id="lint-auto-format">Lint &amp; auto-format<a class="headerlink" href="#lint-auto-format" title="Permanent link">&para;</a></h4>
+<p>Tools do the heavy lifting, Claude fixes what they can't. I have a script that runs all the linters and formatters:
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>.<span class="w"> </span>--fix
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>bun<span class="w"> </span>run<span class="w"> </span>prettier<span class="w"> </span>--write<span class="w"> </span>.
 </span></code></pre></div></p>
-<h4 id="print-statements">Print Statements<a class="headerlink" href="#print-statements" title="Permanent link">&para;</a></h4>
-<p>Old school but effective. When something's slow or acting weird, I tell Claude: "add timing logs to every function in this flow." Claude instruments the code, we find the bottleneck, fix it, remove the logs. </p>
+<p>Claude runs this after making changes. If ruff can't auto-fix something, Claude reads the error and fixes it manually. No more "oh you forgot a comma" back-and-forth.</p>
+<p><img alt="Claude fixing linting errors" src="../../assets/coding-agents/fix-2.gif" /></p>
+<h4 id="debugging-complex-behavior">Debugging complex behavior<a class="headerlink" href="#debugging-complex-behavior" title="Permanent link">&para;</a></h4>
+<p>When something's acting weird—especially performance issues—I tell Claude to instrument the code with print statements. "Add timing logs to every function in this flow." Claude adds them, we find the bottleneck, fix it, remove the logs. </p>
 <p>No fancy profilers. Just:
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># ... code ...</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing took </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
 </span></code></pre></div></p>
 <p>Sometimes the oldest debugging techniques work best.</p>
+<p><img alt="Claude debugging performance" src="../../assets/coding-agents/performance-2.gif" /></p>
 <h4 id="claude-scratchpad">Claude Scratchpad<a class="headerlink" href="#claude-scratchpad" title="Permanent link">&para;</a></h4>
 <p>I give Claude a <code>claude_scripts/</code> folder (gitignored) for throwaway scripts. Something acting weird? Claude writes a script to figure it out. No more "let me add some print statements and see what happens":
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># /// script</span>
@@ -857,7 +869,7 @@ Now Claude can click buttons, take screenshots, verify the UI actually works. Wa
 <p>In my Databricks app, I just say "deploy." Claude runs the script, watches the logs, fixes any startup issues. If pip complains about dependencies? Claude fixes it. Port already in use? Claude handles it.</p>
 <h2 id="crescendo-the-next-movement">Crescendo: The Next Movement<a class="headerlink" href="#crescendo-the-next-movement" title="Permanent link">&para;</a></h2>
 <p>Once you have the basics down, here's where it gets interesting. These are some examples I thought were cool when in the self-verification loop mindset:</p>
-<h3 id="automated-purchasing-of-bandcamp-songs">Automated Purchasing of Bandcamp Songs<a class="headerlink" href="#automated-purchasing-of-bandcamp-songs" title="Permanent link">&para;</a></h3>
+<h3 id="example-1-automated-purchasing-of-bandcamp-songs">Example 1: Automated Purchasing of Bandcamp Songs<a class="headerlink" href="#example-1-automated-purchasing-of-bandcamp-songs" title="Permanent link">&para;</a></h3>
 <p>I wanted to buy songs from Bandcamp automatically.</p>
 <p>What makes this interesting: Claude slowly builds itself a deterministic scraper. It uses LLMs to figure out each step, but the final script has zero AI—just pure automation that works every time.</p>
 <p><em>(This is part of another project I'm working on that I'll release at some point!)</em></p>
@@ -904,7 +916,8 @@ Now Claude can click buttons, take screenshots, verify the UI actually works. Wa
 <p>Item's in the cart. Claude keeps building toward checkout.</p>
 <p>This goes on—checkout, PayPal auth, purchase confirmation—until Claude sees the download link. Success.</p>
 <p>The final script runs without any AI. Just pure automation, built by showing Claude what to click at each step.</p>
-<h3 id="self-improving-synthetic-data-pipeline">Self-Improving Synthetic Data Pipeline<a class="headerlink" href="#self-improving-synthetic-data-pipeline" title="Permanent link">&para;</a></h3>
+<p>This is a totally different way to write a scraper. Overall it saved me a lot of time (and I enjoyed the process).</p>
+<h3 id="example-2-self-improving-synthetic-data-pipeline">Example 2: Self-Improving Synthetic Data Pipeline<a class="headerlink" href="#example-2-self-improving-synthetic-data-pipeline" title="Permanent link">&para;</a></h3>
 <p>I wanted to synthesize data to test our product. The twist: I need to evaluate the evaluator. Are my fake users realistic? Diverse? Actually testing the right things?</p>
 <p>My self-verification pipeline:</p>
 <ol>
@@ -1067,7 +1080,7 @@ Now Claude can click buttons, take screenshots, verify the UI actually works. Wa
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2024 Nikhil Thorat
+      Copyright &copy; 2025 Nikhil Thorat
     </div>
   
   
