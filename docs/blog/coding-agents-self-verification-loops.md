@@ -8,8 +8,6 @@ image: https://nikubaba.com/assets/coding-agents/new-way.png
 
 *July 2025*
 
-**TL;DR**: Make Claude verify its own work. Scripts, logs, screenshots. Stop being the QA. I now run 5 Claude instances in parallel instead of babysitting one.
-
 *If you want to see code, see [this project](https://gitingest.com/databricks-solutions/agent-monitoring-demo-app) where I built a Databricks App that has a UI with a LangGraph Agent, monitored with MLflow 3.0. This post will focus on Claude Code, but these tricks apply to Cursor, Gemini, and other AI coding tools.*
 
 In his [Software 3.0 talk](https://www.youtube.com/watch?v=LCEmiRjPEtQ), Karpathy describes what he calls the "autonomy slider." You can be "mostly in charge" with small edits, or slide toward full autonomous operations. This post is about turning that slider up enough that I can actually go make coffee while Claude builds features.
@@ -61,7 +59,7 @@ The stack I use for simple Python backend + TypeScript frontend projects:
 ### Python ⟷ Frontend bridge
 OpenAPI code generation. FastAPI schemas → OpenAPI spec → TypeScript types and client code. Change a Python type? TypeScript updates automatically. No more "oh I forgot to update the frontend types" bugs.
 
-Here's the thing: all these tools create tight feedback loops. Claude writes code, the tooling immediately screams if something's wrong, Claude fixes it. No waiting for me to notice.
+Here's the thing: all these tools create tight feedback loops. Claude writes code, the tooling immediately tells Claude if something's wrong, Claude fixes it. No waiting for me to notice.
 
 ## Ear Training: Self-Verification
 
@@ -78,11 +76,9 @@ Here are the techniques I use. You don't need all of them—pick what makes sens
 
 The basics. Nothing fancy, but these save me from being Claude's babysitter.
 
-#### Scripts
+#### Hot reload devserver
 
-Create simple scripts for everything. Here's what I typically have:
-
-**watch.sh** - The most important script. Every time Claude changes code, the server restarts. If something breaks, it shows up in the logs immediately. Claude reads the error, fixes it, tries again. No waiting for me to say "hey, you broke the imports":
+The first thing I set up: Python server restarts on changes. TypeScript rebuilds automatically. When I change FastAPI endpoints, the OpenAPI spec regenerates and TypeScript client updates. If something breaks, it shows up in the logs immediately. Claude reads the error, fixes it, tries again. No waiting for me to say "hey, you broke the imports":
 ```bash
 #!/bin/bash
 # Kill existing processes first
@@ -102,17 +98,25 @@ uv run watchmedo shell-command \
 
 In CLAUDE.md, I tell it to run with: `nohup ./watch.sh > watch.log 2>&1 &`
 
-Everything hot reloads. Python changes trigger TypeScript regeneration. If something hangs, Claude can read the logs and restart with `pkill`.
+If something hangs, Claude can read the logs and restart with `pkill`.
 
-**fix.sh** - Auto-fixes what it can. Claude runs this, then fixes whatever's left:
+![Claude dev server](../assets/coding-agents/claude-dev-server-optimized.gif)
+
+#### Lint & auto-format
+
+Tools do the heavy lifting, Claude fixes what they can't. I have a script that runs all the linters and formatters:
 ```bash
 uv run ruff check . --fix
 bun run prettier --write .
 ```
 
-#### Print Statements
+Claude runs this after making changes. If ruff can't auto-fix something, Claude reads the error and fixes it manually. No more "oh you forgot a comma" back-and-forth.
 
-Old school but effective. When something's slow or acting weird, I tell Claude: "add timing logs to every function in this flow." Claude instruments the code, we find the bottleneck, fix it, remove the logs. 
+![Claude fixing linting errors](../assets/coding-agents/fix-2.gif)
+
+#### Debugging complex behavior
+
+When something's acting weird—especially performance issues—I tell Claude to instrument the code with print statements. "Add timing logs to every function in this flow." Claude adds them, we find the bottleneck, fix it, remove the logs. 
 
 No fancy profilers. Just:
 ```python
@@ -122,6 +126,8 @@ print(f"Processing took {time.time() - start:.2f}s")
 ```
 
 Sometimes the oldest debugging techniques work best.
+
+![Claude debugging performance](../assets/coding-agents/performance-2.gif)
 
 #### Claude Scratchpad
 
@@ -175,7 +181,7 @@ In my Databricks app, I just say "deploy." Claude runs the script, watches the l
 
 Once you have the basics down, here's where it gets interesting. These are some examples I thought were cool when in the self-verification loop mindset:
 
-### Automated Purchasing of Bandcamp Songs
+### Example 1: Automated Purchasing of Bandcamp Songs
 
 I wanted to buy songs from Bandcamp automatically.
 
@@ -241,7 +247,9 @@ This goes on—checkout, PayPal auth, purchase confirmation—until Claude sees 
 
 The final script runs without any AI. Just pure automation, built by showing Claude what to click at each step.
 
-### Self-Improving Synthetic Data Pipeline
+This is a totally different way to write a scraper. Overall it saved me a lot of time (and I enjoyed the process).
+
+### Example 2: Self-Improving Synthetic Data Pipeline
 
 I wanted to synthesize data to test our product. The twist: I need to evaluate the evaluator. Are my fake users realistic? Diverse? Actually testing the right things?
 
