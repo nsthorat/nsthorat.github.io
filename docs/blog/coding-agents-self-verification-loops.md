@@ -8,6 +8,10 @@ image: https://nikubaba.com/assets/coding-agents/new-way.png
 
 *July 2025*
 
+AI coding agents are getting good enough that I'm starting to stay in design flow more often. My time is shifting from implementing APIs and wiring up components to thinking about systems and user experience. I love building products, but the grunt work of coding—boilerplate, glue code, type definitions—has always been draining.
+
+This post shares techniques to accelerate that shift. How to stay in pure design mode while Claude handles the implementation. When you set up the right verification loops, you become more product manager and architect than coder.
+
 *If you want to see code, see [this project](https://gitingest.com/databricks-solutions/agent-monitoring-demo-app) where I built a Databricks App that has a UI with a LangGraph Agent, monitored with MLflow 3.0. This post will focus on Claude Code, but these tricks apply to Cursor, Gemini, and other AI coding tools.*
 
 In his [Software 3.0 talk](https://www.youtube.com/watch?v=LCEmiRjPEtQ), Karpathy describes what he calls the "autonomy slider." You can be "mostly in charge" with small edits, or slide toward full autonomous operations. This post is about turning that slider up enough that I can actually go make coffee while Claude builds features.
