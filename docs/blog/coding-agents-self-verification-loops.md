@@ -51,7 +51,7 @@ Just like quality instruments help musicians play better, the right tools help A
 
 - [Vite](https://vitejs.dev/), for lightning-fast dev server with hot module replacement
 - [Bun](https://bun.sh/), for all-in-one JavaScript tooling
-- [React](https://react.dev/), for component-based UIs agents understand
+- [React](https://react.dev/), because LLMs are good at it (I actually prefer Svelte but there's way less training data)
 - [shadcn/ui](https://ui.shadcn.com/), for copy-paste components with full code ownership
 
 ### Python ⟷ Frontend bridge
