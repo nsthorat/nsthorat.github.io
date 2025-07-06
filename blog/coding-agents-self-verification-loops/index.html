@@ -960,12 +960,14 @@ Now Claude can click buttons, take screenshots, verify the UI actually works. Wa
 </span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># Verify deployment succeeded</span>
 </span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>curl<span class="w"> </span>https://my-app.databricks.com/health
 </span></code></pre></div>
-<p>Claude follows this pattern:
-1. Run <code>deploy</code> command
-2. Wait for deployment to complete
-3. Check <code>/logz</code> endpoint for errors
-4. If errors found → fix and redeploy
-5. If success → verify the app is responding</p>
+<p>Claude follows this pattern:</p>
+<ol>
+<li>Run <code>deploy</code> command</li>
+<li>Wait for deployment to complete</li>
+<li>Check <code>/logz</code> endpoint for errors</li>
+<li>If errors found → fix and redeploy</li>
+<li>If success → verify the app is responding</li>
+</ol>
 <h2 id="crescendo-the-next-movement">Crescendo: The Next Movement<a class="headerlink" href="#crescendo-the-next-movement" title="Permanent link">&para;</a></h2>
 <p>Once we have the basics down, here's where it gets interesting. These are some examples I thought were cool when in the self-verification loop mindset:</p>
 <h3 id="example-1-sql-stitching-in-javascript">Example 1: SQL Stitching in JavaScript<a class="headerlink" href="#example-1-sql-stitching-in-javascript" title="Permanent link">&para;</a></h3>
