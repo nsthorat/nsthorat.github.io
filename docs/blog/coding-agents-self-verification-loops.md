@@ -8,9 +8,9 @@ image: https://nikubaba.com/assets/coding-agents/new-way.png
 
 *July 2025*
 
-AI coding agents are getting good enough that I'm starting to stay in design flow more often. My time is shifting from implementing APIs and wiring up components to thinking about systems and user experience. I love building products, but the grunt work of coding—boilerplate, glue code, type definitions—has always been draining.
+AI coding agents are now good enough that I'm managing to stay in the flow of high-level design instead of getting stuck in the weeds. My time is shifting from implementing APIs and wiring up components to thinking about systems and user experience. I love building products, but the grunt work of coding—boilerplate, glue code, type definitions—has always been draining.
 
-This post shares techniques to accelerate that shift. How to stay in pure design mode while Claude handles the implementation. When you set up the right verification loops, you become more product manager and architect than coder.
+This post shares techniques to accelerate that shift. How to protect your flow state by letting Claude handle the implementation details. When you set up the right verification loops, you become more product manager and architect than coder.
 
 *If you want to see code, see [this project](https://gitingest.com/databricks-solutions/agent-monitoring-demo-app) where I built a Databricks App that has a UI with a LangGraph Agent, monitored with MLflow 3.0. This post will focus on Claude Code, but these tricks apply to Cursor, Gemini, and other AI coding tools.*
 
