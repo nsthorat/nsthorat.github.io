@@ -181,7 +181,9 @@ Once you have the basics down, here's where it gets interesting. These are some 
 
 I'm writing complex SQL queries with JavaScript template literals in the browser. The problem: can't easily test if the SQL is valid without running the whole app.
 
-I know this isn't the best way to build database apps—but it was the fastest way to prototype something. The self-verification trick: I tell Claude to write a Python script that validates the SQL directly against Databricks. Now Claude can check syntax as it writes:
+I know this isn't the best way to build database apps—but it was the fastest way to prototype something. 
+
+Here's the self-verification trick: I tell Claude to write a Python script that validates the SQL directly against Databricks. This creates a mini verification loop—instead of me checking if the SQL works, Claude can check its own syntax as it writes. I just add this to Claude's memory (CLAUDE.md) and now it has more autonomy to verify its work along the way:
 
 ```javascript
 // In the browser - hard to test
