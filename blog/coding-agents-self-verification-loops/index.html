@@ -769,24 +769,88 @@
 
 <h1 id="coding-agents-increase-the-autonomy-slider">Coding Agents: Increase the autonomy slider<a class="headerlink" href="#coding-agents-increase-the-autonomy-slider" title="Permanent link">&para;</a></h1>
 <p><em>July 2025</em></p>
-<p><em>If you want to see code, see <a href="https://gitingest.com/databricks-solutions/agent-monitoring-demo-app">this project</a> where I built a Databricks App that has a UI with a LangGraph Agent, monitored with MLflow 3.0. This post will focus on Claude Code, but these tricks apply to Cursor, Gemini, and other AI coding tools.</em></p>
-<p>AI coding agents like Claude Code, Cursor, and Gemini CLI have galvanized a ton of excitement in the software engineering world. And for good reason: so many of the mundane coding tasks are now completely automated, leaving engineers to think about higher level architecture &amp; design, the fun parts of building products.</p>
+<p>AI coding agents like Claude Code, Cursor, and Gemini CLI have galvanized excitement in the software engineering world. And for good reason: so many of the mundane coding tasks are now completely automated, leaving engineers to think about higher level architecture &amp; design, the fun parts of building products.</p>
 <p>Using Claude Code more has made me happier - I find flow states that feel more like product management than coding. Coding is the boring part (to me).</p>
-<p>These systems are still not infallible - LLMs make mistakes. However, I think most of the time the issue is that product requirements are underspecified. I often don't even know what the requirements are until I start building. An emerging flow state of building products is:
-- Think of feature
-- Ask AI coding agent to implement
-- While it's implementing, have the mental space to think about what the next set of requirements are.
-- Rinse and repeat.</p>
-<p>This post explores some of my techniques for staying in this flow state as much as possible. Other than the usual tricks like good prompting, plan mode, etc, I think the most important mindset is about enabling agents to self-verify. Self-verification happens at all scales: the macro (the entire product) and the micro (small tools to assist in building features).</p>
+<p>This post explores some of my techniques for staying in this flow state as much as possible. In his <a href="https://www.youtube.com/watch?v=LCEmiRjPEtQ">Software 3.0 talk</a>, Karpathy describes what he calls the "autonomy slider"—you can be "mostly in charge" with small edits, or slide toward full autonomous operations. Other than the usual tricks like good prompting, plan mode, etc, I think the most important mindset is about enabling agents to self-verify. Self-verification happens at all scales: the macro (the entire product) and the micro (small tools to assist in building features).</p>
+<p><em>If you want to see code, see <a href="https://gitingest.com/databricks-solutions/agent-monitoring-demo-app">this project</a> where I built a Databricks App that has a UI with a LangGraph Agent, monitored with MLflow 3.0. This post will focus on Claude Code, but these tricks apply to Cursor, Gemini, and other AI coding tools.</em></p>
 <h3 id="the-orchestra">The orchestra<a class="headerlink" href="#the-orchestra" title="Permanent link">&para;</a></h3>
-<p>In his <a href="https://www.youtube.com/watch?v=LCEmiRjPEtQ">Software 3.0 talk</a>, Karpathy describes what he calls the "autonomy slider." You can be "mostly in charge" with small edits, or slide toward full autonomous operations. This post is about turning that slider up enough that I can actually go make coffee while Claude builds features.</p>
-<p>My approach: figure out where I'm the bottleneck and automate it away. Every time I find myself checking Claude's work, I ask "how can Claude check this instead?" This post shares what I've learned—the good, the bad, and the times Claude deleted my entire database (kidding, but only because I had safeguards).</p>
+<p>Imagine we're in an orchestra where I'm the conductor, Claude is the musician. Types, tests, and docs keep our instruments in tune. This post explores how to teach Claude to <em>hear</em>—to build self-verification loops that let it catch and fix its own mistakes while playing.</p>
 <p><strong>The Naive Way (Human as Bottleneck):</strong></p>
-<p><img alt="The naive way - human in the loop" src="../../assets/coding-agents/old-way.png" /></p>
+<!-- ![The naive way - human in the loop](../assets/coding-agents/old-way.png) -->
+
+<div>
+<svg width="800" height="200" viewBox="0 0 800 200" style="max-width: 100%; height: auto;">
+  <!-- First box: Tell claude what to build -->
+  <rect x="10" y="50" width="210" height="50" rx="10" fill="#f5f5f5" stroke="#999" stroke-width="2"/>
+  <text x="115" y="80" text-anchor="middle" font-family="system-ui" font-size="15" fill="#333">Tell claude what to build</text>
+
+  <!-- Arrow 1 -->
+  <path d="M 225 75 L 245 75" stroke="#666" stroke-width="3" fill="none" marker-end="url(#arrow1)"/>
+
+  <!-- Second box: claude writes code -->
+  <rect x="250" y="50" width="190" height="50" rx="10" fill="#E3F2FD" stroke="#2196F3" stroke-width="3"/>
+  <text x="345" y="80" text-anchor="middle" font-family="system-ui" font-size="15" fill="#1565C0" font-weight="500">claude writes code</text>
+
+  <!-- Arrow 2 -->
+  <path d="M 445 75 L 465 75" stroke="#666" stroke-width="3" fill="none" marker-end="url(#arrow1)"/>
+
+  <!-- Third box: Human verifies code -->
+  <rect x="470" y="50" width="200" height="50" rx="10" fill="#f5f5f5" stroke="#999" stroke-width="2"/>
+  <text x="570" y="80" text-anchor="middle" font-family="system-ui" font-size="15" fill="#333">Human verifies code</text>
+
+  <!-- Loop back arrow -->
+  <path d="M 570 108 L 570 130 Q 570 150 550 150 L 135 150 Q 115 150 115 130 L 115 106" 
+        stroke="#666" stroke-width="3" fill="none" marker-end="url(#arrow1)"/>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrow1" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto">
+      <path d="M0,0 L0,4 L4,2 z" fill="#666"/>
+    </marker>
+  </defs>
+</svg>
+</div>
+
 <p><strong>The Self-Verification Way:</strong></p>
-<p><img alt="The new way - self-verification" src="../../assets/coding-agents/new-way.png" /></p>
-<p>I'm conducting an orchestra where every musician has a 10-minute memory. I used to write down every single note. Now I teach them to hear when they're out of tune.</p>
-<p>Good engineering practices—tests, types, docs—these are the sheet music. This post is about ear training: teaching Claude to know when it's in key versus veering into jazz fusion during a Bach concerto.</p>
+<!-- ![The new way - self-verification](../assets/coding-agents/new-way.png) -->
+
+<div>
+<svg width="800" height="200" viewBox="0 0 800 200" style="max-width: 100%; height: auto;">
+  <!-- First box: Tell claude what to build & how to verify -->
+  <rect x="10" y="50" width="210" height="60" rx="10" fill="#f5f5f5" stroke="#999" stroke-width="2"/>
+  <text x="115" y="75" text-anchor="middle" font-family="system-ui" font-size="15" fill="#333">Tell claude what to</text>
+  <text x="115" y="95" text-anchor="middle" font-family="system-ui" font-size="15" fill="#333">build & how to verify</text>
+
+  <!-- Arrow 1 -->
+  <path d="M 225 80 L 245 80" stroke="#666" stroke-width="3" fill="none" marker-end="url(#arrow2)"/>
+
+  <!-- Second box: claude writes code -->
+  <rect x="250" y="50" width="190" height="60" rx="10" fill="#E3F2FD" stroke="#2196F3" stroke-width="3"/>
+  <text x="345" y="85" text-anchor="middle" font-family="system-ui" font-size="15" fill="#1565C0" font-weight="500">claude writes code</text>
+
+  <!-- Arrow 2 (blue) -->
+  <path d="M 445 80 L 465 80" stroke="#2196F3" stroke-width="3" fill="none" marker-end="url(#arrow2blue)"/>
+
+  <!-- Third box: claude tests code -->
+  <rect x="470" y="50" width="190" height="60" rx="10" fill="#E3F2FD" stroke="#2196F3" stroke-width="3"/>
+  <text x="565" y="85" text-anchor="middle" font-family="system-ui" font-size="15" fill="#1565C0" font-weight="500">claude tests code</text>
+
+  <!-- Loop back arrow (from claude tests to claude writes) -->
+  <path d="M 565 118 L 565 130 Q 565 150 545 150 L 365 150 Q 345 150 345 130 L 345 116" 
+        stroke="#2196F3" stroke-width="3" fill="none" marker-end="url(#arrow2blue)"/>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrow2" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto">
+      <path d="M0,0 L0,4 L4,2 z" fill="#666"/>
+    </marker>
+    <marker id="arrow2blue" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto">
+      <path d="M0,0 L0,4 L4,2 z" fill="#2196F3"/>
+    </marker>
+  </defs>
+</svg>
+</div>
+
 <h2 id="tuning-instruments-choosing-the-right-stack">Tuning Instruments: Choosing the Right Stack<a class="headerlink" href="#tuning-instruments-choosing-the-right-stack" title="Permanent link">&para;</a></h2>
 <p>Just like quality instruments help musicians play better, the right tools help AI agents code better. The best ones are fast, have guardrails, and provide rich type information. This is my preferred stack for Python backend + TypeScript frontend projects (though these ideas work with any tools):</p>
 <h3 id="python-tooling">Python tooling<a class="headerlink" href="#python-tooling" title="Permanent link">&para;</a></h3>
@@ -807,7 +871,8 @@
 </ul>
 <h3 id="python-frontend-bridge">Python ⟷ Frontend bridge<a class="headerlink" href="#python-frontend-bridge" title="Permanent link">&para;</a></h3>
 <p>OpenAPI code generation. FastAPI schemas → OpenAPI spec → TypeScript types and client code. Change a Python type? TypeScript updates automatically. No more "oh I forgot to update the frontend types" bugs.</p>
-<p>Here's the thing: all these tools create tight feedback loops. Claude writes code, the tooling immediately tells Claude if something's wrong, Claude fixes it. No waiting for me to notice.</p>
+<p>All these tools create tight feedback loops. Claude writes code, the tooling immediately tells Claude if something's wrong, Claude fixes it. No waiting for me to notice.</p>
+<p>Now that our instruments are tuned, let's teach Claude to hear.</p>
 <h2 id="ear-training-self-verification">Ear Training: Self-Verification<a class="headerlink" href="#ear-training-self-verification" title="Permanent link">&para;</a></h2>
 <p>Every time I build something now, I ask myself two questions:</p>
 <ol>
@@ -1114,8 +1179,9 @@ Now Claude can click buttons, take screenshots, verify the UI actually works. Wa
 <li>Claude deploys → watches /logz for errors → fixes and redeploys</li>
 </ul>
 <p>Once you internalize this pattern, you can't unsee it. Every manual check becomes an opportunity for automation. Every "let me test this" becomes "Claude, test this and show me the results."</p>
-<p>We should build our software to enable these loops for others too. Every API should have a /health endpoint. Every deployment should expose logs at a predictable URL. Every operation should return structured, parseable results. When you ship software that AI can self-verify against, you're not just building a product—you're building a composable piece of the future.</p>
+<p>We should build our software to enable these loops for others too. Every deployment should expose logs at a predictable URL. Every operation should return structured, parseable results. When you ship software that AI can self-verify against, you're not just building a product—you're building something others can build on.</p>
 <p>The tools that enable this—fast feedback loops, rich types, good observability—were always best practices. Now they're table stakes. Because when your AI can verify its own work, you stop being a debugger and start being a builder.</p>
+<p>This changes everything about how we build. These systems aren't perfect—they make mistakes. But I've realized the real challenge isn't AI fallibility; it's that we rarely know what we're building until we start. Requirements emerge through iteration. With self-verification loops, I can embrace this reality. Think of a feature, ask Claude to implement it, and while it's building and checking its own work, I have the mental space to discover what should come next. The flow state becomes sustainable.</p>
 <p>The musicians can finally hear when they're off-key. Time to write the symphony.</p>
 
 
