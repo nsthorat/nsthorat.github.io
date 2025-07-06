@@ -8,29 +8,95 @@ image: https://nikubaba.com/assets/coding-agents/new-way.png
 
 *July 2025*
 
-AI coding agents are now good enough that I'm managing to stay in the flow of high-level design instead of getting stuck in the mechanics of coding. My time is shifting from implementing APIs and wiring up components to thinking about systems and user experience. I love building products, but the grunt work of coding—boilerplate, glue code, type definitions—has always been draining.
+AI coding agents like Claude Code, Cursor, and Gemini CLI have galvanized excitement in the software engineering world. And for good reason: so many of the mundane coding tasks are now completely automated, leaving engineers to think about higher level architecture & design, the fun parts of building products.
 
-This post shares techniques to accelerate that shift and protect your flow state. When you set up the right verification loops, Claude handles the implementation while you focus on architecture and product.
+Using Claude Code more has made me happier - I find flow states that feel more like product management than coding. Coding is the boring part (to me).
+
+This post explores some of my techniques for staying in this flow state as much as possible. In his [Software 3.0 talk](https://www.youtube.com/watch?v=LCEmiRjPEtQ), Karpathy describes what he calls the "autonomy slider"—you can be "mostly in charge" with small edits, or slide toward full autonomous operations. Other than the usual tricks like good prompting, plan mode, etc, I think the most important mindset is about enabling agents to self-verify. Self-verification happens at all scales: the macro (the entire product) and the micro (small tools to assist in building features).
 
 *If you want to see code, see [this project](https://gitingest.com/databricks-solutions/agent-monitoring-demo-app) where I built a Databricks App that has a UI with a LangGraph Agent, monitored with MLflow 3.0. This post will focus on Claude Code, but these tricks apply to Cursor, Gemini, and other AI coding tools.*
 
 ### The orchestra
 
-In his [Software 3.0 talk](https://www.youtube.com/watch?v=LCEmiRjPEtQ), Karpathy describes what he calls the "autonomy slider." You can be "mostly in charge" with small edits, or slide toward full autonomous operations. This post is about turning that slider up enough that I can actually go make coffee while Claude builds features.
-
-My approach: figure out where I'm the bottleneck and automate it away. Every time I find myself checking Claude's work, I ask "how can Claude check this instead?" This post shares what I've learned—the good, the bad, and the times Claude deleted my entire database (kidding, but only because I had safeguards).
+Imagine we're in an orchestra where I'm the conductor, Claude is the musician. Types, tests, and docs keep our instruments in tune. This post explores how to teach Claude to *hear*—to build self-verification loops that let it catch and fix its own mistakes while playing.
 
 **The Naive Way (Human as Bottleneck):**
 
-![The naive way - human in the loop](../assets/coding-agents/old-way.png)
+<!-- ![The naive way - human in the loop](../assets/coding-agents/old-way.png) -->
+
+<div>
+<svg width="800" height="200" viewBox="0 0 800 200" style="max-width: 100%; height: auto;">
+  <!-- First box: Tell claude what to build -->
+  <rect x="10" y="50" width="210" height="50" rx="10" fill="#f5f5f5" stroke="#999" stroke-width="2"/>
+  <text x="115" y="80" text-anchor="middle" font-family="system-ui" font-size="15" fill="#333">Tell claude what to build</text>
+  
+  <!-- Arrow 1 -->
+  <path d="M 225 75 L 245 75" stroke="#666" stroke-width="3" fill="none" marker-end="url(#arrow1)"/>
+  
+  <!-- Second box: claude writes code -->
+  <rect x="250" y="50" width="190" height="50" rx="10" fill="#E3F2FD" stroke="#2196F3" stroke-width="3"/>
+  <text x="345" y="80" text-anchor="middle" font-family="system-ui" font-size="15" fill="#1565C0" font-weight="500">claude writes code</text>
+  
+  <!-- Arrow 2 -->
+  <path d="M 445 75 L 465 75" stroke="#666" stroke-width="3" fill="none" marker-end="url(#arrow1)"/>
+  
+  <!-- Third box: Human verifies code -->
+  <rect x="470" y="50" width="200" height="50" rx="10" fill="#f5f5f5" stroke="#999" stroke-width="2"/>
+  <text x="570" y="80" text-anchor="middle" font-family="system-ui" font-size="15" fill="#333">Human verifies code</text>
+  
+  <!-- Loop back arrow -->
+  <path d="M 570 108 L 570 130 Q 570 150 550 150 L 135 150 Q 115 150 115 130 L 115 106" 
+        stroke="#666" stroke-width="3" fill="none" marker-end="url(#arrow1)"/>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrow1" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto">
+      <path d="M0,0 L0,4 L4,2 z" fill="#666"/>
+    </marker>
+  </defs>
+</svg>
+</div>
 
 **The Self-Verification Way:**
 
-![The new way - self-verification](../assets/coding-agents/new-way.png)
+<!-- ![The new way - self-verification](../assets/coding-agents/new-way.png) -->
 
-I'm conducting an orchestra where every musician has a 10-minute memory. I used to write down every single note. Now I teach them to hear when they're out of tune.
-
-Good engineering practices—tests, types, docs—these are the sheet music. This post is about ear training: teaching Claude to know when it's in key versus veering into jazz fusion during a Bach concerto.
+<div>
+<svg width="800" height="200" viewBox="0 0 800 200" style="max-width: 100%; height: auto;">
+  <!-- First box: Tell claude what to build & how to verify -->
+  <rect x="10" y="50" width="210" height="60" rx="10" fill="#f5f5f5" stroke="#999" stroke-width="2"/>
+  <text x="115" y="75" text-anchor="middle" font-family="system-ui" font-size="15" fill="#333">Tell claude what to</text>
+  <text x="115" y="95" text-anchor="middle" font-family="system-ui" font-size="15" fill="#333">build & how to verify</text>
+  
+  <!-- Arrow 1 -->
+  <path d="M 225 80 L 245 80" stroke="#666" stroke-width="3" fill="none" marker-end="url(#arrow2)"/>
+  
+  <!-- Second box: claude writes code -->
+  <rect x="250" y="50" width="190" height="60" rx="10" fill="#E3F2FD" stroke="#2196F3" stroke-width="3"/>
+  <text x="345" y="85" text-anchor="middle" font-family="system-ui" font-size="15" fill="#1565C0" font-weight="500">claude writes code</text>
+  
+  <!-- Arrow 2 (blue) -->
+  <path d="M 445 80 L 465 80" stroke="#2196F3" stroke-width="3" fill="none" marker-end="url(#arrow2blue)"/>
+  
+  <!-- Third box: claude tests code -->
+  <rect x="470" y="50" width="190" height="60" rx="10" fill="#E3F2FD" stroke="#2196F3" stroke-width="3"/>
+  <text x="565" y="85" text-anchor="middle" font-family="system-ui" font-size="15" fill="#1565C0" font-weight="500">claude tests code</text>
+  
+  <!-- Loop back arrow (from claude tests to claude writes) -->
+  <path d="M 565 118 L 565 130 Q 565 150 545 150 L 365 150 Q 345 150 345 130 L 345 116" 
+        stroke="#2196F3" stroke-width="3" fill="none" marker-end="url(#arrow2blue)"/>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrow2" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto">
+      <path d="M0,0 L0,4 L4,2 z" fill="#666"/>
+    </marker>
+    <marker id="arrow2blue" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto">
+      <path d="M0,0 L0,4 L4,2 z" fill="#2196F3"/>
+    </marker>
+  </defs>
+</svg>
+</div>
 
 ## Tuning Instruments: Choosing the Right Stack
 
@@ -51,13 +117,15 @@ Just like quality instruments help musicians play better, the right tools help A
 
 - [Vite](https://vitejs.dev/), for lightning-fast dev server with hot module replacement
 - [Bun](https://bun.sh/), for all-in-one JavaScript tooling
-- [React](https://react.dev/), because LLMs are good at it (I actually prefer Svelte but there's way less training data)
+- [React](https://react.dev/), because LLMs are good at it (I prefer [Svelte](https://svelte.dev/), but LLMs have trained on far less Svelte code)
 - [shadcn/ui](https://ui.shadcn.com/), for copy-paste components with full code ownership
 
 ### Python ⟷ Frontend bridge
 OpenAPI code generation. FastAPI schemas → OpenAPI spec → TypeScript types and client code. Change a Python type? TypeScript updates automatically. No more "oh I forgot to update the frontend types" bugs.
 
-Here's the thing: all these tools create tight feedback loops. Claude writes code, the tooling immediately tells Claude if something's wrong, Claude fixes it. No waiting for me to notice.
+All these tools create tight feedback loops. Claude writes code, the tooling immediately tells Claude if something's wrong, Claude fixes it. No waiting for me to notice.
+
+Now that our instruments are tuned, let's teach Claude to hear.
 
 ## Ear Training: Self-Verification
 
@@ -68,21 +136,19 @@ Every time I build something now, I ask myself two questions:
 
 It's easier for LLMs to verify than to generate. Just like how anyone can hear when a note is off-key, but playing in tune is hard. So I teach Claude to be its own critic.
 
-Here are the techniques I use. You don't need all of them—pick what makes sense for your setup.
-
 ### Basic Self-Verification
 
-The basics. Nothing fancy, but these save me from being Claude's babysitter.
+The setup below is a simple Python webserver with a React frontend to demonstrate how I orchestrate self-verification loops.
 
 #### Hot reload devserver
 
-The first thing I set up: Python server restarts on changes. TypeScript rebuilds automatically. When I change FastAPI endpoints, the OpenAPI spec regenerates and TypeScript client updates. If something breaks, it shows up in the logs immediately. Claude reads the error, fixes it, tries again. No waiting for me to say "hey, you broke the imports":
+A hot-reloading devserver that rebuilds instantly dramatically speeds up inner loop development. The setup reloads both FastAPI (python changes), Typescript, and React. There's also logic to automatically rebuild Typescript hooks when the FastAPI API changes.
+
+This setup allows Claude to make changes and instantly debug itself. If your setup is slow, it's worth spending time making the hot-reloading fast.
+
+
 ```bash
 #!/bin/bash
-# Kill existing processes first
-pkill -f uvicorn 2>/dev/null
-pkill -f vite 2>/dev/null
-
 # Start everything in parallel
 uv run uvicorn server.main:app --reload &
 bun vite --host &
@@ -94,27 +160,30 @@ uv run watchmedo shell-command \
   src/server &
 ```
 
-In CLAUDE.md, I tell it to run with: `nohup ./watch.sh > watch.log 2>&1 &`
+In CLAUDE.md, I tell it to run with: `nohup ./watch.sh > watch.log 2>&1 &`.
 
-If something hangs, Claude can read the logs and restart with `pkill`.
+Claude can read the logs in the `watch.log`, and kill the server with `pkill`.
+
+All of these are remembered in `CLAUDE.md`.
 
 ![Claude dev server](../assets/coding-agents/claude-dev-server-optimized.gif)
 
 #### Lint & auto-format
 
-Tools do the heavy lifting, Claude fixes what they can't. I have a script that runs all the linters and formatters:
+To reduce the amount of work the LLMs have to do, I try to make my linting & formatting do as much as they can. They're typically faster, and free up tokens to fix more complex issues.
+
 ```bash
 uv run ruff check . --fix
 bun run prettier --write .
 ```
 
-Claude runs this after making changes. If ruff can't auto-fix something, Claude reads the error and fixes it manually. No more "oh you forgot a comma" back-and-forth.
+I add this to the memory to do this automatically between some changes. You can also use Claude Hooks if you want to do this without the LLM making that decision.
 
 ![Claude fixing linting errors](../assets/coding-agents/fix-2.gif)
 
 #### Debugging complex behavior
 
-When something's acting weird—especially performance issues—I tell Claude to instrument the code with print statements. "Add timing logs to every function in this flow." Claude adds them, we find the bottleneck, fix it, remove the logs. 
+Often complex bugs arise, either with performance, or interaction between two non-trivial systems. I often will just ask Claude to instrument the code to debug the issues. Since it can read all the logs from the devserver, we've set up a self-verification loop to fix these types of issues.
 
 No fancy profilers. Just:
 ```python
@@ -123,13 +192,14 @@ start = time.time()
 print(f"Processing took {time.time() - start:.2f}s")
 ```
 
-Sometimes the oldest debugging techniques work best.
-
 ![Claude debugging performance](../assets/coding-agents/performance-2.gif)
 
 #### Claude Scratchpad
 
-I give Claude a `claude_scripts/` folder (gitignored) for throwaway scripts. Something acting weird? Claude writes a script to figure it out. No more "let me add some print statements and see what happens":
+I give Claude a `claude_scripts/` folder for throwaway scripts. Claude loves to create test scripts, sometimes inlining them. I prefer to let Claude write them because if something works, it acts as a memory for the future when I integrate it into the larger system.
+
+I usually tell Claude to use [uv inline dependencies](https://docs.astral.sh/uv/guides/scripts/#declaring-script-dependencies) to keep scripts hermetic instead of adding dependencies to the project unless they're needed by the actual system. This is also added to `CLAUDE.md`.
+
 ```python
 # /// script
 # requires-python = ">=3.11"
@@ -144,11 +214,13 @@ response = requests.get("http://localhost:8000/metrics")
 df = pd.DataFrame(response.json())
 print(df.describe())
 ```
-Without this folder, Claude leaves test scripts everywhere. UV's inline dependencies mean no virtual env setup—just run the script.
 
 #### API Self-Testing
 
-FastAPI gives you `/docs` for free. I tell Claude to read them and figure out the API itself:
+I try to keep verification loops as tight as possible. If Claude needs to debug a FastAPI endpoint, it's better to have Claude curl the endpoint directly, instead of debugging it through the UI, for example.
+
+I usually keep `CLAUDE.md` in sync with the OpenAPI spec that FastAPI produces. FastAPI gives a nice `/docs` endpoint and an `/openapi.json` endpoint where the API is well defined. I'll periodically tell Claude to read it and update the memory.
+
 ```markdown
 ## API Endpoints
 - API docs: http://localhost:8000/docs
@@ -159,11 +231,10 @@ FastAPI gives you `/docs` for free. I tell Claude to read them and figure out th
 - Create item: `curl -X POST http://localhost:8000/items -d '{"name": "test"}'`
 - List items: `curl http://localhost:8000/items`
 ```
-Now Claude can test its own endpoints. No more "I think this works" moments.
 
 #### Browser Automation with Playwright
 
-Claude can take screenshots and see what it built. Install the MCP:
+Claude can take screenshots and see what it built. Install with:
 ```bash
 claude mcp add playwright npx '@playwright/mcp@latest'
 ```
@@ -173,30 +244,54 @@ Now Claude can click buttons, take screenshots, verify the UI actually works. Wa
 
 #### Deployment
 
-In my Databricks app, I just say "deploy." Claude runs the script, watches the logs, fixes any startup issues. If pip complains about dependencies? Claude fixes it. Port already in use? Claude handles it.
+In my Databricks app, the deployment process has built-in verification:
+
+```bash
+# Deploy command triggers deployment
+databricks apps deploy
+
+# Check deployment logs
+curl https://my-app.databricks.com/logz
+
+# Verify deployment succeeded
+curl https://my-app.databricks.com/health
+```
+
+Claude follows this pattern:
+
+1. Run `deploy` command
+2. Wait for deployment to complete
+3. Check `/logz` endpoint for errors
+4. If errors found → fix and redeploy
+5. If success → verify the app is responding
+
 
 ## Crescendo: The Next Movement
 
-Once you have the basics down, here's where it gets interesting. These are some examples I thought were cool when in the self-verification loop mindset:
+Once we have the basics down, here's where it gets interesting. These are some examples I thought were cool when in the self-verification loop mindset:
 
 ### Example 1: SQL Stitching in JavaScript
 
-I'm writing complex SQL queries with JavaScript template literals in the browser. The problem: can't easily test if the SQL is valid without running the whole app.
+I was recently working on an app where Javascript stitches together SQL queries (don't judge me: it was the simplest way to prototype something).
 
-I know this isn't the best way to build database apps—but it was the fastest way to prototype something. 
+I wanted to make a tighter verification loop when Claude was writing Javascript that generated SQL, without having to execute the app end to end.
 
-Here's the self-verification trick: I tell Claude to write a Python script that validates the SQL directly against Databricks. This creates a mini verification loop—instead of me checking if the SQL works, Claude can check its own syntax as it writes. I just add this to Claude's memory (CLAUDE.md) and now it has more autonomy to verify its work along the way:
+To do that, I had Claude write a simple Python script that would execute any SQL query (against a Databricks SQL warehouse), and in its memory I would have Claude always use the script whenever making changes to SQL in Javascript. That way Claude could always verify itself as Databricks SQL is slightly different than most other dialects.
 
 ```javascript
 // In the browser - hard to test
-const getMetrics = (startDate, endDate) => `
+const getTraceAnalytics = (experimentId, startDate) => `
   SELECT 
-    date_trunc('hour', timestamp) as hour,
-    COUNT(DISTINCT user_id) as unique_users,
-    SUM(CASE WHEN event_type = 'purchase' THEN 1 ELSE 0 END) as purchases
-  FROM events
-  WHERE timestamp BETWEEN '${startDate}' AND '${endDate}'
+    date_trunc('hour', start_time) as hour,
+    COUNT(DISTINCT trace_id) as total_traces,
+    AVG(total_tokens) as avg_tokens,
+    SUM(CASE WHEN status = 'ERROR' THEN 1 ELSE 0 END) as error_count,
+    PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY latency_ms) as p95_latency
+  FROM mlflow.traces
+  WHERE experiment_id = '${experimentId}' 
+    AND start_time >= '${startDate}'
   GROUP BY 1
+  ORDER BY 1
 `;
 ```
 
@@ -205,7 +300,7 @@ const getMetrics = (startDate, endDate) => `
 import re
 from databricks import sql
 
-def validate_sql_template(js_file):
+def test_mlflow_queries(js_file):
     # Extract SQL from template literals
     with open(js_file) as f:
         content = f.read()
@@ -213,34 +308,33 @@ def validate_sql_template(js_file):
     sql_templates = re.findall(r'`\s*(SELECT[\s\S]*?)`', content)
     
     for template in sql_templates:
-        # Replace ${var} with test values
-        test_sql = re.sub(r'\$\{.*?\}', "'2024-01-01'", template)
+        # Replace ${var} with test values appropriate for MLflow
+        test_sql = template.replace('${experimentId}', "'test-exp-123'")
+        test_sql = test_sql.replace('${startDate}', "'2024-01-01'")
         
-        # Test against Databricks
+        # Execute against Databricks and show results
         with sql.connect(...) as conn:
             cursor = conn.cursor()
-            cursor.execute(f"EXPLAIN {test_sql}")
-            print(f"✓ SQL valid: {test_sql[:50]}...")
+            cursor.execute(test_sql)
+            
+            # Print results as table
+            rows = cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description]
+            print(f"\n{' | '.join(columns)}")
+            print('-' * 80)
+            for row in rows[:5]:  # Show first 5 rows
+                print(' | '.join(str(val) for val in row))
 ```
-
-Now Claude catches SQL errors before they hit production. No more "oh, Databricks doesn't support that syntax" surprises.
 
 ### Example 2: Automated Purchasing of Bandcamp Songs
 
-I wanted to buy songs from Bandcamp automatically.
+I am working on a side project where I automate purchase from Bandcamp, a website for purchasing songs directly from artists.
 
-What makes this interesting: Claude slowly builds itself a deterministic scraper. It uses LLMs to figure out each step, but the final script has zero AI—just pure automation that works every time.
+This required writing a browser automation tool that could purchase a song on behalf of a user, clicking through a complex UI workflow.
 
-*(This is part of another project I'm working on that I'll release at some point!)*
+The trick here is an iterative self-verification loop: Claude slowly builds out the scraper. At the end of the checkout script, it dumps out HTML and a screenshot. Claude Code knows my goal: get to the final "purchase" screen, so it can choose what the next step is. Of course, I was often guiding it, but with plain English about what to click, and sometimes that it needed to wait for a few seconds.
 
-Here's what worked:
-
-- Told Claude to build the automation step by step
-- At each page, dump the DOM and take a screenshot
-- Success = download link appears after purchase
-- "Show me what you see, I'll tell you what to click"
-
-Claude built it incrementally:
+Demonstration of the script being built:
 
 **Iteration 1:**
 ```python
@@ -417,12 +511,20 @@ After seeing this report, I ask Claude to come up with a plan to fix the issues.
 
 ## Conclusion
 
-These are just some ideas for creating verification loops. Look for them everywhere. Every manual check is a candidate for automation.
+We're living through a paradigm shift. The old way: write code, check it works, fix bugs, repeat. The new way: teach AI to verify its own work, then scale horizontally.
 
-This shift is exciting. Instead of fighting with code, debugging syntax errors, or tracking down missing semicolons, I get to think about the product. The user experience. The architecture. I'm not a typist anymore—I'm back to being a conductor.
+Self-verification loops aren't just a nice-to-have—they're the difference between AI as a typing assistant and AI as a team of engineers. I find these loops everywhere now:
 
-What used to be one Claude instance needing constant supervision is now five Claudes building different features in parallel. Same amount of my time, 5x the output.
+- Claude writes SQL → executes it against real data → sees the results
+- Claude changes an API → frontend types auto-update → Claude tests the endpoints
+- Claude deploys → watches /logz for errors → fixes and redeploys
 
-The best part? Everything that helps AI helps us too. Clear docs, strong types, good tests—these were already best practices. Now they're essential.
+Once you internalize this pattern, you can't unsee it. Every manual check becomes an opportunity for automation. Every "let me test this" becomes "Claude, test this and show me the results."
 
-My musicians can finally hear when they're off-key. And me? I can focus on composing the symphony instead of correcting every note.
+We should build our software to enable these loops for others too. Every deployment should expose logs at a predictable URL. Every operation should return structured, parseable results. When you ship software that AI can self-verify against, you're not just building a product—you're building something others can build on.
+
+The tools that enable this—fast feedback loops, rich types, good observability—were always best practices. Now they're table stakes. Because when your AI can verify its own work, you stop being a debugger and start being a builder.
+
+This changes everything about how we build. These systems aren't perfect—they make mistakes. But I've realized the real challenge isn't AI fallibility; it's that we rarely know what we're building until we start. Requirements emerge through iteration. With self-verification loops, I can embrace this reality. Think of a feature, ask Claude to implement it, and while it's building and checking its own work, I have the mental space to discover what should come next. The flow state becomes sustainable.
+
+The musicians can finally hear when they're off-key. Time to write the symphony.
