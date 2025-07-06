@@ -1107,10 +1107,12 @@ Now Claude can click buttons, take screenshots, verify the UI actually works. Wa
 <hr />
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">&para;</a></h2>
 <p>We're living through a paradigm shift. The old way: write code, check it works, fix bugs, repeat. The new way: teach AI to verify its own work, then scale horizontally.</p>
-<p>Self-verification loops aren't just a nice-to-have—they're the difference between AI as a typing assistant and AI as a team of engineers. I find these loops everywhere now:
-- Claude writes SQL → executes it against real data → sees the results
-- Claude changes an API → frontend types auto-update → Claude tests the endpoints
-- Claude deploys → watches /logz for errors → fixes and redeploys</p>
+<p>Self-verification loops aren't just a nice-to-have—they're the difference between AI as a typing assistant and AI as a team of engineers. I find these loops everywhere now:</p>
+<ul>
+<li>Claude writes SQL → executes it against real data → sees the results</li>
+<li>Claude changes an API → frontend types auto-update → Claude tests the endpoints</li>
+<li>Claude deploys → watches /logz for errors → fixes and redeploys</li>
+</ul>
 <p>Once you internalize this pattern, you can't unsee it. Every manual check becomes an opportunity for automation. Every "let me test this" becomes "Claude, test this and show me the results."</p>
 <p>We should build our software to enable these loops for others too. Every API should have a /health endpoint. Every deployment should expose logs at a predictable URL. Every operation should return structured, parseable results. When you ship software that AI can self-verify against, you're not just building a product—you're building a composable piece of the future.</p>
 <p>The tools that enable this—fast feedback loops, rich types, good observability—were always best practices. Now they're table stakes. Because when your AI can verify its own work, you stop being a debugger and start being a builder.</p>
