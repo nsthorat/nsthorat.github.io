@@ -26,21 +26,13 @@ My approach: figure out where I'm the bottleneck and automate it away. Every tim
 
 ![The new way - self-verification](../assets/coding-agents/new-way.png)
 
-Let me run with Karpathy's orchestra metaphor. I'm conducting an orchestra where every musician has a 10-minute memory—brilliant players who forget what symphony we're playing between movements. As conductor, I'm constantly reminding them what piece we're playing, what key we're in, where we're headed.
+I'm conducting an orchestra where every musician has a 10-minute memory. I used to write down every single note. Now I teach them to hear when they're out of tune.
 
-I used to write down every single note. Now? I teach them to hear when they're out of tune.
-
-Good engineering practices—tests, types, docs—these are the sheet music for my forgetful musicians. A README isn't documentation; it's a memory aid. Types aren't just for catching bugs; they're guardrails that stop Claude from passing a User object to a function expecting a banana.
-
-This post is about ear training. Teaching my musicians to know when they're in key, when they're following the progression, and when they're veering into jazz fusion during a Bach concerto.
+Good engineering practices—tests, types, docs—these are the sheet music. This post is about ear training: teaching Claude to know when it's in key versus veering into jazz fusion during a Bach concerto.
 
 ## Tuning Instruments: Choosing the Right Stack
 
-Before teaching musicians to play, you need the right instruments. Three things matter when choosing tools for AI agents: speed, guardrails, and rich type information. Turns out what helps humans—fast feedback, strong types, clear docs—is exactly what Claude needs.
-
-I always use Python type hints and TypeScript. Never plain JavaScript. More type info = less chance Claude does something completely insane.
-
-The stack I use for simple Python backend + TypeScript frontend projects:
+Just like quality instruments help musicians play better, the right tools help AI agents code better. The best ones are fast, have guardrails, and provide rich type information. This is my preferred stack for Python backend + TypeScript frontend projects (though these ideas work with any tools):
 
 ### Python tooling
 
