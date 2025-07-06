@@ -548,6 +548,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#the-orchestra" class="md-nav__link">
+    <span class="md-ellipsis">
+      The orchestra
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#tuning-instruments-choosing-the-right-stack" class="md-nav__link">
     <span class="md-ellipsis">
       Tuning Instruments: Choosing the Right Stack
@@ -763,6 +772,7 @@
 <p>AI coding agents are now good enough that I'm managing to stay in the flow of high-level design instead of getting stuck in the mechanics of coding. My time is shifting from implementing APIs and wiring up components to thinking about systems and user experience. I love building products, but the grunt work of coding—boilerplate, glue code, type definitions—has always been draining.</p>
 <p>This post shares techniques to accelerate that shift and protect your flow state. When you set up the right verification loops, Claude handles the implementation while you focus on architecture and product.</p>
 <p><em>If you want to see code, see <a href="https://gitingest.com/databricks-solutions/agent-monitoring-demo-app">this project</a> where I built a Databricks App that has a UI with a LangGraph Agent, monitored with MLflow 3.0. This post will focus on Claude Code, but these tricks apply to Cursor, Gemini, and other AI coding tools.</em></p>
+<h3 id="the-orchestra">The orchestra<a class="headerlink" href="#the-orchestra" title="Permanent link">&para;</a></h3>
 <p>In his <a href="https://www.youtube.com/watch?v=LCEmiRjPEtQ">Software 3.0 talk</a>, Karpathy describes what he calls the "autonomy slider." You can be "mostly in charge" with small edits, or slide toward full autonomous operations. This post is about turning that slider up enough that I can actually go make coffee while Claude builds features.</p>
 <p>My approach: figure out where I'm the bottleneck and automate it away. Every time I find myself checking Claude's work, I ask "how can Claude check this instead?" This post shares what I've learned—the good, the bad, and the times Claude deleted my entire database (kidding, but only because I had safeguards).</p>
 <p><strong>The Naive Way (Human as Bottleneck):</strong></p>
