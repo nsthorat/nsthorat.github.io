@@ -142,7 +142,7 @@ response = requests.get("http://localhost:8000/metrics")
 df = pd.DataFrame(response.json())
 print(df.describe())
 ```
-Without this folder, Claude leaves test scripts everywhere like a messy roommate. UV's inline dependencies mean no virtual env setup—just run the script.
+Without this folder, Claude leaves test scripts everywhere. UV's inline dependencies mean no virtual env setup—just run the script.
 
 #### API Self-Testing
 
@@ -177,7 +177,51 @@ In my Databricks app, I just say "deploy." Claude runs the script, watches the l
 
 Once you have the basics down, here's where it gets interesting. These are some examples I thought were cool when in the self-verification loop mindset:
 
-### Example 1: Automated Purchasing of Bandcamp Songs
+### Example 1: SQL Stitching in JavaScript
+
+I'm writing complex SQL queries with JavaScript template literals in the browser. The problem: can't easily test if the SQL is valid without running the whole app.
+
+I know this isn't the best way to build database apps—but it was the fastest way to prototype something. The self-verification trick: I tell Claude to write a Python script that validates the SQL directly against Databricks. Now Claude can check syntax as it writes:
+
+```javascript
+// In the browser - hard to test
+const getMetrics = (startDate, endDate) => `
+  SELECT 
+    date_trunc('hour', timestamp) as hour,
+    COUNT(DISTINCT user_id) as unique_users,
+    SUM(CASE WHEN event_type = 'purchase' THEN 1 ELSE 0 END) as purchases
+  FROM events
+  WHERE timestamp BETWEEN '${startDate}' AND '${endDate}'
+  GROUP BY 1
+`;
+```
+
+```python
+# Claude's validation script
+import re
+from databricks import sql
+
+def validate_sql_template(js_file):
+    # Extract SQL from template literals
+    with open(js_file) as f:
+        content = f.read()
+    
+    sql_templates = re.findall(r'`\s*(SELECT[\s\S]*?)`', content)
+    
+    for template in sql_templates:
+        # Replace ${var} with test values
+        test_sql = re.sub(r'\$\{.*?\}', "'2024-01-01'", template)
+        
+        # Test against Databricks
+        with sql.connect(...) as conn:
+            cursor = conn.cursor()
+            cursor.execute(f"EXPLAIN {test_sql}")
+            print(f"✓ SQL valid: {test_sql[:50]}...")
+```
+
+Now Claude catches SQL errors before they hit production. No more "oh, Databricks doesn't support that syntax" surprises.
+
+### Example 2: Automated Purchasing of Bandcamp Songs
 
 I wanted to buy songs from Bandcamp automatically.
 
@@ -245,7 +289,7 @@ The final script runs without any AI. Just pure automation, built by showing Cla
 
 This is a totally different way to write a scraper. Overall it saved me a lot of time (and I enjoyed the process).
 
-### Example 2: Self-Improving Synthetic Data Pipeline
+### Example 3: Self-Improving Synthetic Data Pipeline
 
 I wanted to synthesize data to test our product. The twist: I need to evaluate the evaluator. Are my fake users realistic? Diverse? Actually testing the right things?
 
