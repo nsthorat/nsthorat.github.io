@@ -769,9 +769,15 @@
 
 <h1 id="coding-agents-increase-the-autonomy-slider">Coding Agents: Increase the autonomy slider<a class="headerlink" href="#coding-agents-increase-the-autonomy-slider" title="Permanent link">&para;</a></h1>
 <p><em>July 2025</em></p>
-<p>AI coding agents are now good enough that I'm managing to stay in the flow of high-level design instead of getting stuck in the mechanics of coding. My time is shifting from implementing APIs and wiring up components to thinking about systems and user experience. I love building products, but the grunt work of coding—boilerplate, glue code, type definitions—has always been draining.</p>
-<p>This post shares techniques to accelerate that shift and protect your flow state. When you set up the right verification loops, Claude handles the implementation while you focus on architecture and product.</p>
 <p><em>If you want to see code, see <a href="https://gitingest.com/databricks-solutions/agent-monitoring-demo-app">this project</a> where I built a Databricks App that has a UI with a LangGraph Agent, monitored with MLflow 3.0. This post will focus on Claude Code, but these tricks apply to Cursor, Gemini, and other AI coding tools.</em></p>
+<p>AI coding agents like Claude Code, Cursor, and Gemini CLI have galvanized a ton of excitement in the software engineering world. And for good reason: so many of the mundane coding tasks are now completely automated, leaving engineers to think about higher level architecture &amp; design, the fun parts of building products.</p>
+<p>Using Claude Code more has made me happier - I find flow states that feel more like product management than coding. Coding is the boring part (to me).</p>
+<p>These systems are still not infallible - LLMs make mistakes. However, I think most of the time the issue is that product requirements are underspecified. I often don't even know what the requirements are until I start building. An emerging flow state of building products is:
+- Think of feature
+- Ask AI coding agent to implement
+- While it's implementing, have the mental space to think about what the next set of requirements are.
+- Rinse and repeat.</p>
+<p>This post explores some of my techniques for staying in this flow state as much as possible. Other than the usual tricks like good prompting, plan mode, etc, I think the most important mindset is about enabling agents to self-verify. Self-verification happens at all scales: the macro (the entire product) and the micro (small tools to assist in building features).</p>
 <h3 id="the-orchestra">The orchestra<a class="headerlink" href="#the-orchestra" title="Permanent link">&para;</a></h3>
 <p>In his <a href="https://www.youtube.com/watch?v=LCEmiRjPEtQ">Software 3.0 talk</a>, Karpathy describes what he calls the "autonomy slider." You can be "mostly in charge" with small edits, or slide toward full autonomous operations. This post is about turning that slider up enough that I can actually go make coffee while Claude builds features.</p>
 <p>My approach: figure out where I'm the bottleneck and automate it away. Every time I find myself checking Claude's work, I ask "how can Claude check this instead?" This post shares what I've learned—the good, the bad, and the times Claude deleted my entire database (kidding, but only because I had safeguards).</p>
@@ -796,7 +802,7 @@
 <ul>
 <li><a href="https://vitejs.dev/">Vite</a>, for lightning-fast dev server with hot module replacement</li>
 <li><a href="https://bun.sh/">Bun</a>, for all-in-one JavaScript tooling</li>
-<li><a href="https://react.dev/">React</a>, because LLMs are good at it (I actually prefer Svelte but there's way less training data)</li>
+<li><a href="https://react.dev/">React</a>, because LLMs are good at it (I prefer <a href="https://svelte.dev/">Svelte</a>, but LLMs have trained on far less Svelte code)</li>
 <li><a href="https://ui.shadcn.com/">shadcn/ui</a>, for copy-paste components with full code ownership</li>
 </ul>
 <h3 id="python-frontend-bridge">Python ⟷ Frontend bridge<a class="headerlink" href="#python-frontend-bridge" title="Permanent link">&para;</a></h3>
@@ -809,47 +815,44 @@
 <li><strong>How will Claude know if it worked?</strong></li>
 </ol>
 <p>It's easier for LLMs to verify than to generate. Just like how anyone can hear when a note is off-key, but playing in tune is hard. So I teach Claude to be its own critic.</p>
-<p>Here are the techniques I use. You don't need all of them—pick what makes sense for your setup.</p>
 <h3 id="basic-self-verification">Basic Self-Verification<a class="headerlink" href="#basic-self-verification" title="Permanent link">&para;</a></h3>
-<p>The basics. Nothing fancy, but these save me from being Claude's babysitter.</p>
+<p>The setup below is a simple Python webserver with a React frontend to demonstrate how I orchestrate self-verification loops.</p>
 <h4 id="hot-reload-devserver">Hot reload devserver<a class="headerlink" href="#hot-reload-devserver" title="Permanent link">&para;</a></h4>
-<p>The first thing I set up: Python server restarts on changes. TypeScript rebuilds automatically. When I change FastAPI endpoints, the OpenAPI spec regenerates and TypeScript client updates. If something breaks, it shows up in the logs immediately. Claude reads the error, fixes it, tries again. No waiting for me to say "hey, you broke the imports":
+<p>A hot-reloading devserver that rebuilds instantly dramatically speeds up inner loop development. The setup reloads both FastAPI (python changes), Typescript, and React. There's also logic to automatically rebuild Typescript hooks when the FastAPI API changes.</p>
+<p>This setup allows Claude to make changes and instantly debug itself. If your setup is slow, it's worth spending time making the hot-reloading fast.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="ch">#!/bin/bash</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># Kill existing processes first</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pkill<span class="w"> </span>-f<span class="w"> </span>uvicorn<span class="w"> </span><span class="m">2</span>&gt;/dev/null
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>pkill<span class="w"> </span>-f<span class="w"> </span>vite<span class="w"> </span><span class="m">2</span>&gt;/dev/null
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># Start everything in parallel</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>uv<span class="w"> </span>run<span class="w"> </span>uvicorn<span class="w"> </span>server.main:app<span class="w"> </span>--reload<span class="w"> </span><span class="p">&amp;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>bun<span class="w"> </span>vite<span class="w"> </span>--host<span class="w"> </span><span class="p">&amp;</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Start everything in parallel</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>uv<span class="w"> </span>run<span class="w"> </span>uvicorn<span class="w"> </span>server.main:app<span class="w"> </span>--reload<span class="w"> </span><span class="p">&amp;</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>bun<span class="w"> </span>vite<span class="w"> </span>--host<span class="w"> </span><span class="p">&amp;</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># Auto-regenerate TypeScript client when Python changes</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>uv<span class="w"> </span>run<span class="w"> </span>watchmedo<span class="w"> </span>shell-command<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span>--patterns<span class="o">=</span><span class="s2">&quot;*.py&quot;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span>--command<span class="o">=</span><span class="s1">&#39;uv run python make_openapi.py | npx openapi-typescript-codegen --input stdin --output client/api&#39;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span>src/server<span class="w"> </span><span class="p">&amp;</span>
-</span></code></pre></div></p>
-<p>In CLAUDE.md, I tell it to run with: <code>nohup ./watch.sh &gt; watch.log 2&gt;&amp;1 &amp;</code></p>
-<p>If something hangs, Claude can read the logs and restart with <code>pkill</code>.</p>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Auto-regenerate TypeScript client when Python changes</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>uv<span class="w"> </span>run<span class="w"> </span>watchmedo<span class="w"> </span>shell-command<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span>--patterns<span class="o">=</span><span class="s2">&quot;*.py&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span>--command<span class="o">=</span><span class="s1">&#39;uv run python make_openapi.py | npx openapi-typescript-codegen --input stdin --output client/api&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span>src/server<span class="w"> </span><span class="p">&amp;</span>
+</span></code></pre></div>
+<p>In CLAUDE.md, I tell it to run with: <code>nohup ./watch.sh &gt; watch.log 2&gt;&amp;1 &amp;</code>.</p>
+<p>Claude can read the logs in the <code>watch.log</code>, and kill the server with <code>pkill</code>.</p>
+<p>All of these are remembered in <code>CLAUDE.md</code>.</p>
 <p><img alt="Claude dev server" src="../../assets/coding-agents/claude-dev-server-optimized.gif" /></p>
 <h4 id="lint-auto-format">Lint &amp; auto-format<a class="headerlink" href="#lint-auto-format" title="Permanent link">&para;</a></h4>
-<p>Tools do the heavy lifting, Claude fixes what they can't. I have a script that runs all the linters and formatters:
+<p>To reduce the amount of work the LLMs have to do, I try to make my linting &amp; formatting do as much as they can. They're typically faster, and free up tokens to fix more complex issues.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>.<span class="w"> </span>--fix
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>bun<span class="w"> </span>run<span class="w"> </span>prettier<span class="w"> </span>--write<span class="w"> </span>.
-</span></code></pre></div></p>
-<p>Claude runs this after making changes. If ruff can't auto-fix something, Claude reads the error and fixes it manually. No more "oh you forgot a comma" back-and-forth.</p>
+</span></code></pre></div>
+<p>I add this to the memory to do this automatically between some changes. You can also use Claude Hooks if you want to do this without the LLM making that decision.</p>
 <p><img alt="Claude fixing linting errors" src="../../assets/coding-agents/fix-2.gif" /></p>
 <h4 id="debugging-complex-behavior">Debugging complex behavior<a class="headerlink" href="#debugging-complex-behavior" title="Permanent link">&para;</a></h4>
-<p>When something's acting weird—especially performance issues—I tell Claude to instrument the code with print statements. "Add timing logs to every function in this flow." Claude adds them, we find the bottleneck, fix it, remove the logs. </p>
+<p>Often complex bugs arise, either with performance, or interaction between two non-trivial systems. I often will just ask Claude to instrument the code to debug the issues. Since it can read all the logs from the devserver, we've set up a self-verification loop to fix these types of issues.</p>
 <p>No fancy profilers. Just:
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># ... code ...</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing took </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
 </span></code></pre></div></p>
-<p>Sometimes the oldest debugging techniques work best.</p>
 <p><img alt="Claude debugging performance" src="../../assets/coding-agents/performance-2.gif" /></p>
 <h4 id="claude-scratchpad">Claude Scratchpad<a class="headerlink" href="#claude-scratchpad" title="Permanent link">&para;</a></h4>
-<p>I give Claude a <code>claude_scripts/</code> folder (gitignored) for throwaway scripts. Something acting weird? Claude writes a script to figure it out. No more "let me add some print statements and see what happens":
+<p>I give Claude a <code>claude_scripts/</code> folder for throwaway scripts. Claude loves to create test scripts, sometimes inlining them. I prefer to let Claude write them because if something works, it acts as a memory for the future when I integrate it into the larger system.</p>
+<p>I usually tell Claude to use <a href="https://docs.astral.sh/uv/guides/scripts/#declaring-script-dependencies">uv inline dependencies</a> to keep scripts hermetic instead of adding dependencies to the project unless they're needed by the actual system. This is also added to <code>CLAUDE.md</code>.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># /// script</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># requires-python = &quot;&gt;=3.11&quot;</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># dependencies = [&quot;requests&quot;, &quot;pandas&quot;]</span>
@@ -863,9 +866,9 @@
 </span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
 </span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">describe</span><span class="p">())</span>
 </span></code></pre></div>
-Without this folder, Claude leaves test scripts everywhere. UV's inline dependencies mean no virtual env setup—just run the script.</p>
 <h4 id="api-self-testing">API Self-Testing<a class="headerlink" href="#api-self-testing" title="Permanent link">&para;</a></h4>
-<p>FastAPI gives you <code>/docs</code> for free. I tell Claude to read them and figure out the API itself:
+<p>I try to keep verification loops as tight as possible. If Claude needs to debug a FastAPI endpoint, it's better to have Claude curl the endpoint directly, instead of debugging it through the UI, for example.</p>
+<p>I usually keep <code>CLAUDE.md</code> in sync with the OpenAPI spec that FastAPI produces. FastAPI gives a nice <code>/docs</code> endpoint and an <code>/openapi.json</code> endpoint where the API is well defined. I'll periodically tell Claude to read it and update the memory.</p>
 <div class="language-markdown highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="gu">## API Endpoints</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">-</span><span class="w"> </span>API docs: http://localhost:8000/docs
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">-</span><span class="w"> </span>OpenAPI spec: <span class="sb">`curl http://localhost:8000/openapi.json`</span>
@@ -875,96 +878,114 @@ Without this folder, Claude leaves test scripts everywhere. UV's inline dependen
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="k">-</span><span class="w"> </span>Create item: <span class="sb">`curl -X POST http://localhost:8000/items -d &#39;{&quot;name&quot;: &quot;test&quot;}&#39;`</span>
 </span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">-</span><span class="w"> </span>List items: <span class="sb">`curl http://localhost:8000/items`</span>
 </span></code></pre></div>
-Now Claude can test its own endpoints. No more "I think this works" moments.</p>
 <h4 id="browser-automation-with-playwright">Browser Automation with Playwright<a class="headerlink" href="#browser-automation-with-playwright" title="Permanent link">&para;</a></h4>
-<p>Claude can take screenshots and see what it built. Install the MCP:
+<p>Claude can take screenshots and see what it built. Install with:
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>claude<span class="w"> </span>mcp<span class="w"> </span>add<span class="w"> </span>playwright<span class="w"> </span>npx<span class="w"> </span><span class="s1">&#39;@playwright/mcp@latest&#39;</span>
 </span></code></pre></div>
 Now Claude can click buttons, take screenshots, verify the UI actually works. Way better than me describing what's broken.</p>
 <p><em>(If you want to automatically login with Playwright, I made <a href="https://github.com/nsthorat/claude-playwright-cookie-copy">this repo</a> which will automatically copy cookies before opening Playwright.)</em></p>
 <h4 id="deployment">Deployment<a class="headerlink" href="#deployment" title="Permanent link">&para;</a></h4>
-<p>In my Databricks app, I just say "deploy." Claude runs the script, watches the logs, fixes any startup issues. If pip complains about dependencies? Claude fixes it. Port already in use? Claude handles it.</p>
+<p>In my Databricks app, the deployment process has built-in verification:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Deploy command triggers deployment</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>databricks<span class="w"> </span>apps<span class="w"> </span>deploy
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Check deployment logs</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>curl<span class="w"> </span>https://my-app.databricks.com/logz
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># Verify deployment succeeded</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>curl<span class="w"> </span>https://my-app.databricks.com/health
+</span></code></pre></div>
+<p>Claude follows this pattern:
+1. Run <code>deploy</code> command
+2. Wait for deployment to complete
+3. Check <code>/logz</code> endpoint for errors
+4. If errors found → fix and redeploy
+5. If success → verify the app is responding</p>
 <h2 id="crescendo-the-next-movement">Crescendo: The Next Movement<a class="headerlink" href="#crescendo-the-next-movement" title="Permanent link">&para;</a></h2>
-<p>Once you have the basics down, here's where it gets interesting. These are some examples I thought were cool when in the self-verification loop mindset:</p>
+<p>Once we have the basics down, here's where it gets interesting. These are some examples I thought were cool when in the self-verification loop mindset:</p>
 <h3 id="example-1-sql-stitching-in-javascript">Example 1: SQL Stitching in JavaScript<a class="headerlink" href="#example-1-sql-stitching-in-javascript" title="Permanent link">&para;</a></h3>
-<p>I'm writing complex SQL queries with JavaScript template literals in the browser. The problem: can't easily test if the SQL is valid without running the whole app.</p>
-<p>I know this isn't the best way to build database apps—but it was the fastest way to prototype something. </p>
-<p>Here's the self-verification trick: I tell Claude to write a Python script that validates the SQL directly against Databricks. This creates a mini verification loop—instead of me checking if the SQL works, Claude can check its own syntax as it writes. I just add this to Claude's memory (CLAUDE.md) and now it has more autonomy to verify its work along the way:</p>
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// In the browser - hard to test</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">getMetrics</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">startDate</span><span class="p">,</span><span class="w"> </span><span class="nx">endDate</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="sb">`</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="sb">  SELECT </span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="sb">    date_trunc(&#39;hour&#39;, timestamp) as hour,</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="sb">    COUNT(DISTINCT user_id) as unique_users,</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="sb">    SUM(CASE WHEN event_type = &#39;purchase&#39; THEN 1 ELSE 0 END) as purchases</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="sb">  FROM events</span>
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="sb">  WHERE timestamp BETWEEN &#39;</span><span class="si">${</span><span class="nx">startDate</span><span class="si">}</span><span class="sb">&#39; AND &#39;</span><span class="si">${</span><span class="nx">endDate</span><span class="si">}</span><span class="sb">&#39;</span>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="sb">  GROUP BY 1</span>
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="sb">`</span><span class="p">;</span>
+<p>I was recently working on an app where Javascript stitches together SQL queries (don't judge me: it was the simplest way to prototype something).</p>
+<p>I wanted to make a tighter verification loop when Claude was writing Javascript that generated SQL, without having to execute the app end to end.</p>
+<p>To do that, I had Claude write a simple Python script that would execute any SQL query (against a Databricks SQL warehouse), and in its memory I would have Claude always use the script whenever making changes to SQL in Javascript. That way Claude could always verify itself as Databricks SQL is slightly different than most other dialects.</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// In the browser - hard to test</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">getTraceAnalytics</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">experimentId</span><span class="p">,</span><span class="w"> </span><span class="nx">startDate</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="sb">`</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="sb">  SELECT </span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="sb">    date_trunc(&#39;hour&#39;, start_time) as hour,</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="sb">    COUNT(DISTINCT trace_id) as total_traces,</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="sb">    AVG(total_tokens) as avg_tokens,</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="sb">    SUM(CASE WHEN status = &#39;ERROR&#39; THEN 1 ELSE 0 END) as error_count,</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="sb">    PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY latency_ms) as p95_latency</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="sb">  FROM mlflow.traces</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="sb">  WHERE experiment_id = &#39;</span><span class="si">${</span><span class="nx">experimentId</span><span class="si">}</span><span class="sb">&#39; </span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="sb">    AND start_time &gt;= &#39;</span><span class="si">${</span><span class="nx">startDate</span><span class="si">}</span><span class="sb">&#39;</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="sb">  GROUP BY 1</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="sb">  ORDER BY 1</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="sb">`</span><span class="p">;</span>
 </span></code></pre></div>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Claude&#39;s validation script</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">databricks</span><span class="w"> </span><span class="kn">import</span> <span class="n">sql</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">validate_sql_template</span><span class="p">(</span><span class="n">js_file</span><span class="p">):</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="c1"># Extract SQL from template literals</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">js_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>        <span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="n">sql_templates</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;`\s*(SELECT[\s\S]*?)`&#39;</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="n">sql_templates</span><span class="p">:</span>
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>        <span class="c1"># Replace ${var} with test values</span>
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>        <span class="n">test_sql</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\$\{.*?\}&#39;</span><span class="p">,</span> <span class="s2">&quot;&#39;2024-01-01&#39;&quot;</span><span class="p">,</span> <span class="n">template</span><span class="p">)</span>
-</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>
-</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>        <span class="c1"># Test against Databricks</span>
-</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>        <span class="k">with</span> <span class="n">sql</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="o">...</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
-</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>            <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;EXPLAIN </span><span class="si">{</span><span class="n">test_sql</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ SQL valid: </span><span class="si">{</span><span class="n">test_sql</span><span class="p">[:</span><span class="mi">50</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Claude&#39;s validation script</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">databricks</span><span class="w"> </span><span class="kn">import</span> <span class="n">sql</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_mlflow_queries</span><span class="p">(</span><span class="n">js_file</span><span class="p">):</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>    <span class="c1"># Extract SQL from template literals</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">js_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>        <span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>    <span class="n">sql_templates</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;`\s*(SELECT[\s\S]*?)`&#39;</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>    <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="n">sql_templates</span><span class="p">:</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>        <span class="c1"># Replace ${var} with test values appropriate for MLflow</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>        <span class="n">test_sql</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;$</span><span class="si">{experimentId}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s2">&quot;&#39;test-exp-123&#39;&quot;</span><span class="p">)</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>        <span class="n">test_sql</span> <span class="o">=</span> <span class="n">test_sql</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;$</span><span class="si">{startDate}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s2">&quot;&#39;2024-01-01&#39;&quot;</span><span class="p">)</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>        <span class="c1"># Execute against Databricks and show results</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>        <span class="k">with</span> <span class="n">sql</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="o">...</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>            <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">test_sql</span><span class="p">)</span>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>            <span class="c1"># Print results as table</span>
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>            <span class="n">rows</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>            <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">desc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">desc</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span><span class="p">]</span>
+</span><span id="__span-8-25"><a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-8-26"><a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-&#39;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+</span><span id="__span-8-27"><a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a>            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>  <span class="c1"># Show first 5 rows</span>
+</span><span id="__span-8-28"><a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a>                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">row</span><span class="p">))</span>
 </span></code></pre></div>
-<p>Now Claude catches SQL errors before they hit production. No more "oh, Databricks doesn't support that syntax" surprises.</p>
 <h3 id="example-2-automated-purchasing-of-bandcamp-songs">Example 2: Automated Purchasing of Bandcamp Songs<a class="headerlink" href="#example-2-automated-purchasing-of-bandcamp-songs" title="Permanent link">&para;</a></h3>
-<p>I wanted to buy songs from Bandcamp automatically.</p>
-<p>What makes this interesting: Claude slowly builds itself a deterministic scraper. It uses LLMs to figure out each step, but the final script has zero AI—just pure automation that works every time.</p>
-<p><em>(This is part of another project I'm working on that I'll release at some point!)</em></p>
-<p>Here's what worked:</p>
-<ul>
-<li>Told Claude to build the automation step by step</li>
-<li>At each page, dump the DOM and take a screenshot</li>
-<li>Success = download link appears after purchase</li>
-<li>"Show me what you see, I'll tell you what to click"</li>
-</ul>
-<p>Claude built it incrementally:</p>
+<p>I am working on a side project where I automate purchase from Bandcamp, a website for purchasing songs directly from artists.</p>
+<p>This required writing a browser automation tool that could purchase a song on behalf of a user, clicking through a complex UI workflow.</p>
+<p>The trick here is an iterative self-verification loop: Claude slowly builds out the scraper. At the end of the checkout script, it dumps out HTML and a screenshot. Claude Code knows my goal: get to the final "purchase" screen, so it can choose what the next step is. Of course, I was often guiding it, but with plain English about what to click, and sometimes that it needed to wait for a few seconds.</p>
+<p>Demonstration of the script being built:</p>
 <p><strong>Iteration 1:</strong>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Just navigate and see what&#39;s there</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="s2">&quot;https://gloopy1.bandcamp.com/track/from-the-start&quot;</span><span class="p">)</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;debug_1_initial.png&quot;</span><span class="p">)</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;debug_1_initial.html&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">())</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Just navigate and see what&#39;s there</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="s2">&quot;https://gloopy1.bandcamp.com/track/from-the-start&quot;</span><span class="p">)</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;debug_1_initial.png&quot;</span><span class="p">)</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;debug_1_initial.html&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">())</span>
 </span></code></pre></div></p>
 <p><img alt="Laufey - From The Start initial page" src="../../assets/coding-agents/laufey_1_initial.png" /></p>
 <p>Claude sees the page, finds the "Buy Digital Track" button. I confirm, we move on.</p>
 <p><strong>Iteration 2:</strong>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Navigate and click the buy button</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="s2">&quot;https://gloopy1.bandcamp.com/track/from-the-start&quot;</span><span class="p">)</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;debug_1_initial.png&quot;</span><span class="p">)</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="s2">&quot;button:has-text(&#39;Buy Digital Track&#39;)&quot;</span><span class="p">)</span>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;debug_2_after_click.png&quot;</span><span class="p">)</span>
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;debug_2_after_click.html&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">())</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Navigate and click the buy button</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="s2">&quot;https://gloopy1.bandcamp.com/track/from-the-start&quot;</span><span class="p">)</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;debug_1_initial.png&quot;</span><span class="p">)</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="s2">&quot;button:has-text(&#39;Buy Digital Track&#39;)&quot;</span><span class="p">)</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;debug_2_after_click.png&quot;</span><span class="p">)</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;debug_2_after_click.html&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">())</span>
 </span></code></pre></div></p>
 <p><img alt="Price input dialog appears" src="../../assets/coding-agents/laufey_2_after_click.png" /></p>
 <p>Price input appears. Claude knows what to do next.</p>
 <p><strong>Iteration 3:</strong>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Navigate, click buy, fill price, add to cart</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="s2">&quot;https://gloopy1.bandcamp.com/track/from-the-start&quot;</span><span class="p">)</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="s2">&quot;button:has-text(&#39;Buy Digital Track&#39;)&quot;</span><span class="p">)</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="s2">&quot;#userPrice&quot;</span><span class="p">,</span> <span class="s2">&quot;2.00&quot;</span><span class="p">)</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="s2">&quot;button:has-text(&#39;Add to cart&#39;)&quot;</span><span class="p">)</span>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;debug_3_after_cart.png&quot;</span><span class="p">)</span>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;debug_3_after_cart.html&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">())</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Navigate, click buy, fill price, add to cart</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="s2">&quot;https://gloopy1.bandcamp.com/track/from-the-start&quot;</span><span class="p">)</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="s2">&quot;button:has-text(&#39;Buy Digital Track&#39;)&quot;</span><span class="p">)</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="s2">&quot;#userPrice&quot;</span><span class="p">,</span> <span class="s2">&quot;2.00&quot;</span><span class="p">)</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="s2">&quot;button:has-text(&#39;Add to cart&#39;)&quot;</span><span class="p">)</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;debug_3_after_cart.png&quot;</span><span class="p">)</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;debug_3_after_cart.html&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">())</span>
 </span></code></pre></div></p>
 <p><img alt="Cart sidebar with track added" src="../../assets/coding-agents/laufey_3_cart_opened.png" /></p>
 <p>Item's in the cart. Claude keeps building toward checkout.</p>
@@ -1085,11 +1106,15 @@ Now Claude can click buttons, take screenshots, verify the UI actually works. Wa
 
 <hr />
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">&para;</a></h2>
-<p>These are just some ideas for creating verification loops. Look for them everywhere. Every manual check is a candidate for automation.</p>
-<p>This shift is exciting. Instead of fighting with code, debugging syntax errors, or tracking down missing semicolons, I get to think about the product. The user experience. The architecture. I'm not a typist anymore—I'm back to being a conductor.</p>
-<p>What used to be one Claude instance needing constant supervision is now five Claudes building different features in parallel. Same amount of my time, 5x the output.</p>
-<p>The best part? Everything that helps AI helps us too. Clear docs, strong types, good tests—these were already best practices. Now they're essential.</p>
-<p>My musicians can finally hear when they're off-key. And me? I can focus on composing the symphony instead of correcting every note.</p>
+<p>We're living through a paradigm shift. The old way: write code, check it works, fix bugs, repeat. The new way: teach AI to verify its own work, then scale horizontally.</p>
+<p>Self-verification loops aren't just a nice-to-have—they're the difference between AI as a typing assistant and AI as a team of engineers. I find these loops everywhere now:
+- Claude writes SQL → executes it against real data → sees the results
+- Claude changes an API → frontend types auto-update → Claude tests the endpoints
+- Claude deploys → watches /logz for errors → fixes and redeploys</p>
+<p>Once you internalize this pattern, you can't unsee it. Every manual check becomes an opportunity for automation. Every "let me test this" becomes "Claude, test this and show me the results."</p>
+<p>We should build our software to enable these loops for others too. Every API should have a /health endpoint. Every deployment should expose logs at a predictable URL. Every operation should return structured, parseable results. When you ship software that AI can self-verify against, you're not just building a product—you're building a composable piece of the future.</p>
+<p>The tools that enable this—fast feedback loops, rich types, good observability—were always best practices. Now they're table stakes. Because when your AI can verify its own work, you stop being a debugger and start being a builder.</p>
+<p>My musicians can finally hear when they're off-key. Time to write the symphony.</p>
 
 
 
